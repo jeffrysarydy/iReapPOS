@@ -1,0 +1,1273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>iREAP POS — Payment</title>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Inter', sans-serif; background: #F8FAFC; color: #1E293B; min-height: 100vh; display: flex; flex-direction: column; }
+
+/* ── HEADER ── */
+.pos-header { height: 64px; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; padding: 0 24px; gap: 32px; position: sticky; top: 0; z-index: 40; }
+.pos-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+.pos-logo-icon { width: 34px; height: 34px; background: #2563EB; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+.pos-logo-icon .material-icons { font-size: 18px; color: #fff; }
+.pos-logo-name { font-size: 15px; font-weight: 800; color: #fff; letter-spacing: -0.3px; }
+.pos-logo-sub { font-size: 10px; color: #64748B; font-weight: 500; }
+.pos-nav { display: flex; gap: 2px; }
+.pos-nav a { color: #94A3B8; font-size: 13px; font-weight: 500; text-decoration: none; padding: 6px 12px; border-radius: 7px; transition: all 0.15s; }
+.pos-nav a:hover { background: rgba(255,255,255,.08); color: #fff; }
+.pos-nav a.active { background: rgba(255,255,255,.12); color: #fff; }
+.pos-header-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+.pos-user-name { font-size: 13px; font-weight: 600; color: #fff; }
+.pos-user-role { font-size: 10px; color: #64748B; }
+.pos-avatar { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; border: 2px solid #1E293B; }
+
+/* ── MAIN ── */
+.main-grid { flex: 1; display: grid; grid-template-columns: 1fr 380px; gap: 24px; padding: 24px max(24px, calc((100vw - 1200px) / 2)); align-items: start; }
+@media (max-width: 900px) {
+  .main-grid { grid-template-columns: 1fr; padding: 16px; gap: 16px; }
+  .pos-header { padding: 0 16px; gap: 16px; }
+  .pos-logo-name, .pos-logo-sub, .pos-user-role { display: none; }
+}
+
+/* ── CARD ── */
+.card { background: #fff; border-radius: 16px; border: 1px solid #E8EDF5; box-shadow: 0 8px 30px rgba(15,23,42,.04); overflow: hidden; transition: box-shadow 0.3s ease; }
+.card:hover { box-shadow: 0 12px 40px rgba(15,23,42,.06); }
+.card-header { padding: 18px 24px 14px; border-bottom: 1px solid #F1F5F9; display: flex; align-items: center; justify-content: space-between; background: #fafbfc; }
+.card-title { font-size: 15px; font-weight: 800; color: #0F172A; display: flex; align-items: center; gap: 8px; letter-spacing: -0.2px; }
+.card-title .material-icons { font-size: 18px; color: #3B82F6; }
+.card-body { padding: 20px 24px; }
+
+/* ── METHOD TABS ── */
+.quick-cash-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 10px; }
+.btn-quick-cash { padding: 8px; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; font-size: 12px; font-weight: 600; color: #475569; cursor: pointer; transition: all .15s; font-family: 'Inter', sans-serif; font-variant-numeric: tabular-nums; }
+.btn-quick-cash:hover { border-color: #3B82F6; color: #1D4ED8; background: #EFF6FF; }
+.method-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 24px; }
+.method-tab {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 10px 18px; border-radius: 10px; font-size: 13.5px; font-weight: 600;
+  border: 1.5px solid #E2E8F0; background: #fff; color: #64748B;
+  cursor: pointer; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); font-family: 'Inter', sans-serif;
+}
+.method-tab .material-icons { font-size: 16px; }
+.method-tab:hover { border-color: #BFDBFE; color: #1D4ED8; background: #EFF6FF; transform: translateY(-1px); }
+.method-tab.active { border-color: #2563EB; background: #EFF6FF; color: #1D4ED8; box-shadow: 0 4px 12px rgba(37,99,235,.1); transform: translateY(-1px); }
+.method-tab.active .method-tab-dot { background: #2563EB; }
+
+
+/* ── PROMOTIONS ── */
+.promo-list { display: flex; flex-direction: column; gap: 4px; }
+.promo-item { display: flex; align-items: center; justify-content: space-between; padding: 12px; border-radius: 8px; transition: background 0.15s; }
+.promo-item:hover { background: #F8FAFC; }
+.promo-item.active { background: #F1F5F9; }
+.promo-item-left { display: flex; align-items: flex-start; gap: 12px; }
+.promo-item-icon { color: #64748B; margin-top: 2px; }
+.promo-item-icon .material-icons { font-size: 20px; }
+.promo-item-title { font-size: 13.5px; font-weight: 800; color: #0F172A; }
+.promo-item-desc { font-size: 12px; color: #64748B; margin-top: 2px; }
+.promo-apply-btn { font-size: 13.5px; font-weight: 700; color: #4F46E5; background: none; border: none; cursor: pointer; padding: 6px; display: inline-flex; align-items: center; justify-content: center; gap: 4px; }
+.promo-apply-btn:hover { text-decoration: underline; }
+
+/* ── FORM FIELDS ── */
+.pay-field { margin-bottom: 14px; }
+.pay-field label { display: block; font-size: 11.5px; font-weight: 600; color: #475569; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 5px; }
+.pay-input {
+  display: block; width: 100%; padding: 10px 14px; border: 1.5px solid #E2E8F0;
+  border-radius: 10px; font-size: 14px; font-family: 'Inter', sans-serif; color: #0F172A;
+  outline: none; transition: all .2s cubic-bezier(0.4, 0, 0.2, 1);
+  background: #fff;
+}
+.pay-input:focus { border-color: #3B82F6; box-shadow: 0 0 0 4px rgba(59,130,246,.15); }
+.pay-input:disabled, .pay-input[readonly] { background: #F8FAFC; color: #64748B; cursor: default; }
+.pay-input.invalid { border-color: #FCA5A5; background: #FFF5F5; }
+.pay-input.valid { border-color: #86EFAC; background: #F0FDF4; }
+.pay-input-row { display: grid; gap: 10px; }
+
+/* Rate row */
+.rate-row { display: flex; gap: 8px; align-items: center; }
+.rate-box { width: 70px; text-align: center; }
+.rate-result { flex: 1; font-weight: 700; color: #0F172A; }
+
+/* Voucher/Deposit check row */
+.check-row { display: flex; gap: 8px; }
+.check-row .pay-input { flex: 1; }
+.btn-check {
+  padding: 9px 16px; border-radius: 8px; border: 1.5px solid #E2E8F0;
+  background: #F8FAFC; color: #475569; font-size: 13px; font-weight: 600;
+  font-family: 'Inter', sans-serif; cursor: pointer; white-space: nowrap;
+  transition: all .15s; display: flex; align-items: center; gap: 4px;
+}
+.btn-check:hover { border-color: #2563EB; color: #2563EB; background: #EFF6FF; }
+.status-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 12px; font-weight: 600; padding: 5px 10px; border-radius: 6px;
+  margin-top: 6px;
+}
+.status-badge.valid { background: #F0FDF4; color: #16A34A; border: 1px solid #BBF7D0; }
+.status-badge.invalid { background: #FFF5F5; color: #DC2626; border: 1px solid #FCA5A5; }
+.status-badge .material-icons { font-size: 14px; }
+
+/* QRIS notice */
+.qris-notice {
+  background: #FFF7ED; border: 1.5px solid #FED7AA; border-radius: 10px;
+  padding: 18px 20px; display: flex; align-items: flex-start; gap: 12px;
+}
+.qris-notice .material-icons { font-size: 22px; color: #EA580C; flex-shrink: 0; margin-top: 1px; }
+.qris-notice-title { font-size: 14px; font-weight: 700; color: #C2410C; }
+.qris-notice-sub { font-size: 12.5px; color: #92400E; margin-top: 3px; line-height: 1.5; }
+
+/* Add button */
+.btn-add {
+  margin-top: 6px; display: flex; align-items: center; justify-content: flex-end; gap: 8px;
+}
+.btn-add-action {
+  padding: 10px 22px; background: #2563EB; color: #fff; border: none; border-radius: 9px;
+  font-size: 13px; font-weight: 700; font-family: 'Inter', sans-serif; cursor: pointer;
+  display: flex; align-items: center; gap: 6px; transition: opacity .15s, transform .1s;
+}
+.btn-add-action:hover { opacity: .9; transform: translateY(-1px); }
+.btn-add-action:active { transform: none; }
+.btn-add-action:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+.btn-add-action .material-icons { font-size: 17px; }
+
+/* ── PAYMENT LIST ── */
+.pay-list { display: flex; flex-direction: column; gap: 0; }
+.pay-entry {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 11px 16px; border-bottom: 1px solid #F1F5F9;
+}
+.pay-entry:last-child { border-bottom: none; }
+.pay-entry-left { display: flex; align-items: center; gap: 10px; }
+.pay-entry-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+.pay-entry-icon .material-icons { font-size: 16px; }
+.pay-entry-label { font-size: 13px; font-weight: 600; color: #0F172A; }
+.pay-entry-method { font-size: 11px; color: #94A3B8; }
+.pay-entry-right { display: flex; align-items: center; gap: 10px; }
+.pay-entry-amount { font-size: 13px; font-weight: 700; color: #0F172A; font-variant-numeric: tabular-nums; }
+.pay-entry-del { background: none; border: none; cursor: pointer; color: #CBD5E1; padding: 3px; border-radius: 5px; display: flex; transition: color .12s; }
+.pay-entry-del:hover { color: #DC2626; }
+.pay-entry-del .material-icons { font-size: 17px; }
+.pay-list-empty { padding: 28px; text-align: center; color: #CBD5E1; font-size: 12.5px; }
+
+/* ── SUMMARY ── */
+.bill-rows { display: flex; flex-direction: column; gap: 7px; }
+.bill-row { display: flex; justify-content: space-between; align-items: center; font-size: 14px; padding: 3px 0; }
+.bill-row .lbl { color: #64748B; }
+.bill-row .val { font-weight: 600; color: #0F172A; font-variant-numeric: tabular-nums; }
+.bill-row.disc .val { color: #DC2626; }
+.bill-divider { border: none; border-top: 1px solid #F1F5F9; margin: 8px 0; }
+.bill-total { display: flex; justify-content: space-between; align-items: center; padding: 14px 0 0; }
+.bill-total .lbl { font-size: 13px; font-weight: 600; color: #475569; }
+.bill-total .val { font-size: 28px; font-weight: 800; color: #0F172A; font-variant-numeric: tabular-nums; letter-spacing: -0.5px; }
+.bill-paid-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0 0; }
+.bill-paid-row .lbl { font-size: 13px; font-weight: 600; color: #475569; }
+.bill-paid-row .val { font-size: 15px; font-weight: 700; color: #16A34A; font-variant-numeric: tabular-nums; }
+.bill-remaining {
+  margin-top: 10px; padding: 12px 14px; border-radius: 9px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.bill-remaining.owe { background: #FFF5F5; border: 1px solid #FECACA; }
+.bill-remaining.change { background: #F0FDF4; border: 1px solid #BBF7D0; }
+.bill-remaining .lbl { font-size: 12.5px; font-weight: 600; }
+.bill-remaining.owe .lbl { color: #DC2626; }
+.bill-remaining.change .lbl { color: #16A34A; }
+.bill-remaining .val { font-size: 16px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.bill-remaining.owe .val { color: #DC2626; }
+.bill-remaining.change .val { color: #16A34A; }
+
+/* ── CONFIRM BUTTON ── */
+.btn-confirm {
+  width: 100%; padding: 16px; background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%); color: #fff; border: none;
+  border-radius: 12px; font-size: 15px; font-weight: 700; font-family: 'Inter', sans-serif;
+  cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+  transition: all .2s cubic-bezier(0.4, 0, 0.2, 1); margin-top: 16px;
+  box-shadow: 0 4px 14px rgba(37,99,235,0.25);
+}
+.btn-confirm:hover:not(:disabled) { box-shadow: 0 6px 20px rgba(37,99,235,0.4); transform: translateY(-2px); }
+.btn-confirm:active:not(:disabled) { transform: translateY(0); box-shadow: 0 2px 8px rgba(37,99,235,0.2); }
+.btn-confirm:disabled { opacity: .5; cursor: not-allowed; transform: none; background: #94A3B8; box-shadow: none; }
+.btn-confirm .material-icons { font-size: 19px; }
+.btn-back {
+  width: 100%; padding: 10px; background: #F8FAFC; color: #475569; border: 1.5px solid #E2E8F0;
+  border-radius: 10px; font-size: 13px; font-weight: 600; font-family: 'Inter', sans-serif;
+  cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;
+  transition: background .13s; margin-top: 8px;
+}
+.btn-back:hover { background: #E2E8F0; }
+.btn-back .material-icons { font-size: 16px; }
+
+/* ── TRXNO BADGE ── */
+.trx-badge-hdr {
+  font-size: 11px; font-weight: 600; color: #64748B; background: #F8FAFC;
+  border: 1px solid #E2E8F0; padding: 3px 9px; border-radius: 6px;
+  font-variant-numeric: tabular-nums; display: flex; align-items: center; gap: 4px;
+}
+.trx-badge-hdr .material-icons { font-size: 13px; color: #94A3B8; }
+
+/* ── DIALOG ── */
+dialog { margin: auto; padding: 0; border: 1px solid #E2E8F0; border-radius: 16px; box-shadow: 0 20px 60px rgba(15,23,42,.18); max-width: 92vw; }
+dialog::backdrop { background: rgba(15,23,42,.5); backdrop-filter: blur(2px); }
+dialog[open] { animation: pop .16s ease-out; }
+@keyframes pop { from { transform: translateY(6px) scale(.98); opacity: 0 } to { transform: none; opacity: 1 } }
+
+/* ── SECTION LABEL ── */
+.section-lbl { font-size: 10.5px; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px; }
+
+.num { font-variant-numeric: tabular-nums; }
+
+/* ── TOAST ── */
+#toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(60px); background:#0F172A; color:#fff; padding:10px 18px; border-radius:9px; font-size:13px; font-weight:500; box-shadow:0 4px 16px rgba(0,0,0,.2); transition:transform .25s cubic-bezier(.34,1.56,.64,1), opacity .25s; opacity:0; z-index:9999; white-space:nowrap; display:flex; align-items:center; gap:8px; }
+#toast.show { transform:translateX(-50%) translateY(0); opacity:1; }
+#toast .material-icons { font-size:17px; color:#4ADE80; }
+
+  /* -- RESPONSIVE DESIGN -- */
+  @media (max-width: 900px) {
+    .main-grid { grid-template-columns: 1fr; padding: 16px; gap: 16px; }
+    .pos-header { padding: 0 16px; gap: 16px; }
+    .left-section, .right-section { max-height: none; overflow: visible; }
+    .method-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 480px) {
+    .method-grid { grid-template-columns: 1fr; }
+    .quick-cash-row { grid-template-columns: 1fr; }
+    .btn-numpad { font-size: 18px; padding: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══ HEADER ═══ -->
+<header class="pos-header">
+  <a href="index.html" class="pos-logo">
+    <div class="pos-logo-icon"><span class="material-icons">storefront</span></div>
+    <div>
+      <div class="pos-logo-name">iREAP POS</div>
+      <div class="pos-logo-sub">Point of Sale</div>
+    </div>
+  </a>
+  <nav class="pos-nav">
+    <a href="index.html" class="active">Sales</a>
+    <a href="ReprintSales.html">Reprint Sales</a>
+  </nav>
+  <div class="pos-header-right">
+    <div style="text-align:right;">
+      <div class="pos-user-name">Hello, User</div>
+      <div class="pos-user-role">Cashier · ABC_XYZ</div>
+    </div>
+    <img alt="User" class="pos-avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCCvZIqUp8upHM2YzOCCg52PvSWek2n5-mWNLGyILXX7sXIFlo7txxXiSzzUHT40zaVVNvJ2P1aIXSa_KUimdoIfHBXKU1jo0VMZi62t41Zc7HNnEQ8spREair9d4Woq7aV8oOBGPtTiexZoR8Q_qHEC4NBGiFEsFS8YDtLn5yeuj2JwVCaGc9ZsZB56U5biKGO8j6B8Sg0_9r95Y0sZONWN19nvZvljysIEKMtbFgLoKKMnY1A8xHJQsMcZ1ViSgLetOJ0ZgUdsAdw"/>
+  </div>
+</header>
+
+<!-- ═══ BREADCRUMB ═══ -->
+<div style="padding: 14px 24px 0; display:flex; align-items:center; gap:8px;">
+  <a href="index.html" style="display:inline-flex;align-items:center;gap:4px;color:#64748B;font-size:12.5px;font-weight:500;text-decoration:none;">
+    <span class="material-icons" style="font-size:15px;">arrow_back</span>Back to Sales
+  </a>
+  <span style="color:#CBD5E1;font-size:12px;">·</span>
+  <div class="trx-badge-hdr" style="margin-left:auto;">
+    <span class="material-icons">receipt_long</span><span id="displayTrxNo">TRX-...</span>
+  </div>
+</div>
+
+<!-- ═══ MAIN GRID ═══ -->
+<div class="main-grid">
+
+  <!-- LEFT: PAYMENT METHOD + FORM -->
+  
+    <div style="display:flex;flex-direction:column;gap:16px;">
+      <!-- Customer Info (Injected) -->
+      <div class="card" id="customerInfoCard" style="overflow:visible;">
+        <div class="card-body" style="padding: 12px 20px;">
+          
+          <div id="payMemberEmpty" style="display:flex; align-items:center; gap:8px;">
+            <div style="position:relative; flex:1;">
+              <span class="material-icons" style="position:absolute; left:10px; top:50%; transform:translateY(-50%); font-size:18px; color:#94A3B8;">search</span>
+              <input id="payMemberSearch" type="text" placeholder="Search member (Name / Phone)" style="width:100%; padding:8px 12px 8px 34px; border:1px solid #E2E8F0; border-radius:8px; font-size:13px; font-family:inherit; outline:none;" autocomplete="off" />
+              <div id="payMemberTypeahead" style="display:none;position:absolute;top:100%;left:0;width:100%;background:#fff;border:1px solid #E2E8F0;border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,0.1);z-index:100;margin-top:4px;max-height:200px;overflow-y:auto;"></div>
+              <div id="payMemberNotFoundHint" style="display:none;position:absolute;top:100%;left:0;font-size:11px;color:#DC2626;margin-top:5px;">Member not found.</div>
+            </div>
+          </div>
+          
+          <div id="payMemberAttached" style="display:none; align-items:center; gap:12px;">
+            <div style="width:40px;height:40px;background:#EFF6FF;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#3B82F6;">
+              <span class="material-icons">person</span>
+            </div>
+            <div>
+              <div style="font-weight:600; font-size:14px; color:#0F172A;" id="payMemberName">Customer Name</div>
+              <div style="font-size:12px; color:#64748B;" id="payMemberId">M00123</div>
+            </div>
+            <div style="margin-left:auto; text-align:right;">
+              <div style="font-size:11px; color:#64748B; font-weight:600; text-transform:uppercase;">Points</div>
+              <div style="font-size:15px; font-weight:700; color:#10B981;" id="payMemberPoints">0</div>
+            </div>
+            <button class="btn-member-clear" id="payMemberClearBtn" title="Remove member" style="background:none;border:none;cursor:pointer;color:#94A3B8;padding:4px;display:flex;">
+              <span class="material-icons" style="font-size:16px;">close</span>
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="card" style="display:flex;flex-direction:column;">
+    <div class="card-header">
+      <div class="card-title"><span class="material-icons">payments</span>Payment</div>
+    </div>
+    <div class="card-body" style="flex:1;">
+      <!-- Method tabs -->
+      <p class="section-lbl">Payment Method</p>
+      <div class="method-row" id="methodRow">
+        <button class="method-tab active" data-method="cash"><span class="material-icons">account_balance_wallet</span>Cash</button>
+        <button class="method-tab" data-method="card"><span class="material-icons">credit_card</span>Card</button>
+        <button class="method-tab" data-method="voucher"><span class="material-icons">local_offer</span>Voucher</button>
+        <button class="method-tab" data-method="qris"><span class="material-icons">qr_code_2</span>QRIS</button>
+        <button class="method-tab" data-method="deposit"><span class="material-icons">account_balance</span>Deposit</button>
+          <button class="method-tab" data-method="point"><span class="material-icons">stars</span>Redeem Poin</button>
+      </div>
+
+      <!-- Dynamic form -->
+      <div id="payFormArea"></div>
+    </div>
+
+    <!-- Payment list (inside left card, below form) -->
+    <div style="border-top:1px solid #F1F5F9;">
+      <div class="card-header" style="border-bottom:none; padding-bottom:8px;">
+        <div class="card-title"><span class="material-icons">list</span>Payment List</div>
+        <span id="payListCount" style="font-size:11px;color:#94A3B8;font-weight:500;">0 entry</span>
+      </div>
+      <div id="payListArea" class="pay-list">
+        <div class="pay-list-empty" id="payListEmpty">No payments added yet.</div>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <!-- RIGHT: SUMMARY + ACTIONS -->
+  <div style="display:flex;flex-direction:column;gap:16px;">
+
+    
+    <!-- Bill summary -->
+    <div class="card">
+      <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;">
+          <div class="card-title"><span class="material-icons">receipt_long</span>Bill Summary</div>
+          <button class="btn-action-sm" onclick="document.getElementById('discountModal').showModal()" style="font-size:12px;display:flex;align-items:center;gap:4px;padding:6px 10px;border:1px solid #BFDBFE;border-radius:6px;background:#EFF6FF;color:#1D4ED8;font-weight:600;cursor:pointer;transition:all 0.2s;box-shadow:0 1px 2px rgba(29,78,216,0.05);" onmouseover="this.style.background='#DBEAFE';this.style.borderColor='#93C5FD'" onmouseout="this.style.background='#EFF6FF';this.style.borderColor='#BFDBFE'">
+            <span class="material-icons" style="font-size:14px;">percent</span> Add Discount
+          </button>
+        </div>
+      <div class="card-body">
+        <div class="bill-rows">
+          <div class="bill-row">
+            <span class="lbl">Subtotal</span>
+            <span class="val num" id="bSubtotal">Rp 0</span>
+          </div>
+          <div class="bill-row disc">
+            <span class="lbl">Payment Disc</span>
+            <span class="val num" id="bDiscount">&#8722; Rp 0</span>
+          </div>
+          <div class="bill-row">
+            <span class="lbl">Tax (11%)</span>
+            <span class="val num" id="bTax">Rp 0</span>
+          </div>
+        </div>
+        <hr class="bill-divider"/>
+        <div class="bill-total">
+          <span class="lbl">Total</span>
+          <span class="val num" id="bTotal">Rp 0</span>
+        </div>
+        <div class="bill-paid-row">
+          <span class="lbl">Total Paid</span>
+          <span class="val num" id="bPaid">Rp 0</span>
+        </div>
+        <div class="bill-remaining owe" id="bRemainingBox">
+          <span class="lbl" id="bRemainingLbl">Remaining Balance</span>
+          <span class="val num" id="bRemainingVal">Rp 0</span>
+        </div>
+        <button class="btn-confirm" id="confirmBtn" disabled style="margin-top: 16px;">
+          <span class="material-icons">check_circle</span>Confirm Payment
+        </button>
+      </div>
+    </div>
+
+
+    <!-- Promotions Block -->
+    <div class="card" style="margin-bottom:16px;">
+      <div class="card-header" style="display:flex; align-items:center; padding-top: 14px; padding-bottom: 12px;">
+        <div class="card-title" style="font-size:16px;">Promotions</div>
+        <button style="margin-left:auto; background:none; border:none; font-size:12.5px; color:#4F46E5; cursor:pointer;">See More</button>
+      </div>
+      <div class="card-body" style="padding: 12px 16px;">
+        <div class="promo-list" id="promoListArea"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══ CONFIRM DIALOG ═══ -->
+
+<dialog id="discountModal" style="width:96vw;max-width:400px;border:none;border-radius:12px;padding:20px;box-shadow:0 10px 25px rgba(0,0,0,0.2);">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+    <h3 style="margin:0;font-size:16px;font-weight:600;display:flex;align-items:center;gap:6px;"><span class="material-icons">percent</span> Payment Discount</h3>
+    <button onclick="this.closest('dialog').close()" style="background:none;border:none;cursor:pointer;color:#94A3B8;"><span class="material-icons">close</span></button>
+  </div>
+  
+  <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 12px;">
+    <div class="pay-field" style="margin-bottom:0;">
+      <label>Percentage (%)</label>
+      <input class="pay-input num" id="discPayPercent" type="number" placeholder="e.g. 10" min="0" max="100"/>
+    </div>
+    <div class="pay-field" style="margin-bottom:0;">
+      <label>Amount (Rp)</label>
+      <input class="pay-input num" id="discPayAmount" type="text" inputmode="numeric" placeholder="e.g. 50.000" />
+    </div>
+  </div>
+  
+  <div class="pay-field" style="margin-bottom:16px;">
+    <label>Remarks</label>
+    <input class="pay-input" id="discPayRemarks" type="text" placeholder="Discount remarks..."/>
+  </div>
+
+  <div id="authPrompt" style="display:none; flex-direction:column; gap:8px; background:#FFFBEB; border:1px solid #FDE68A; padding:12px; border-radius:8px; margin-bottom:12px;">
+     <div style="font-size:12px; color:#B45309; font-weight:700; display:flex; align-items:center; gap:6px;">
+       <span class="material-icons" style="font-size:16px;">admin_panel_settings</span>
+       Diskon > 15% &mdash; Authorization Required
+     </div>
+     <div style="display:flex; gap:8px;">
+        <input type="password" id="authPin" class="pay-input" placeholder="PIN SPV" style="flex:1; padding:8px; font-size:12px;"/>
+        <button class="btn-check" id="btnAuthorizeDisc" style="padding:8px 16px; background:#fff;">Authorize</button>
+     </div>
+  </div>
+
+  <button class="btn-add-action" id="btnApplyDisc" style="width: 100%; justify-content: center;">Apply Discount</button>
+</dialog>
+
+
+<dialog id="confirmDialog" style="width:96vw;max-width:440px;">
+  <div style="padding:36px 32px;text-align:center;">
+    <div style="display:flex;justify-content:center;margin-bottom:16px;">
+      <div style="width:72px;height:72px;background:#F0FDF4;border-radius:50%;display:flex;align-items:center;justify-content:center;">
+        <span class="material-icons" style="font-size:42px;color:#16A34A;">check_circle</span>
+      </div>
+    </div>
+    <h2 style="font-size:22px;font-weight:800;color:#0F172A;margin-bottom:6px;">Transaksi Berhasil</h2>
+    <p style="font-size:13px;color:#64748B;margin-bottom:24px;line-height:1.5;">
+      Transaction Number <span id="dialogTrxNo" style="font-family:monospace;font-weight:700;color:#2563EB;">S20...</span> is complete.
+    </p>
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      <button onclick="closeConfirm('all')" style="width:100%;padding:12px;background:#2563EB;color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:700;font-family:'Inter',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
+        <span class="material-icons" style="font-size:17px;">print</span>Print &amp; Email
+      </button>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <button onclick="closeConfirm('print')" style="padding:10px;background:#F1F5F9;color:#334155;border:none;border-radius:9px;font-size:13px;font-weight:600;font-family:'Inter',sans-serif;cursor:pointer;">Print Only</button>
+        <button onclick="closeConfirm('email')" style="padding:10px;background:#F1F5F9;color:#334155;border:none;border-radius:9px;font-size:13px;font-weight:600;font-family:'Inter',sans-serif;cursor:pointer;">Email Only</button>
+      </div>
+    </div>
+  </div>
+</dialog>
+
+<!-- ═══ TOAST ═══ -->
+<div id="toast"><span class="material-icons">check_circle</span><span id="toastMsg">—</span></div>
+
+<script>
+    // Load from localStorage
+    const cartDataStr = localStorage.getItem('cartData');
+    let cartData = { items: [] };
+    const mockMembers = JSON.parse(localStorage.getItem('POS_MEMBERS') || '[]');
+    if (cartDataStr) {
+      try { cartData = JSON.parse(cartDataStr); } catch(e) {}
+    }
+    
+    // Override localStorage usage
+    const overrideTotal = localStorage.getItem('totalAmount');
+
+  /* ── HELPERS ── */
+  const fmtRp = n => 'Rp ' + Math.round(n).toLocaleString('id-ID');
+  const parseRp = s => parseInt(String(s).replace(/[^\d]/g,''),10)||0;
+
+  /* ── DYNAMIC TOTALS ── */
+  function recalcTotals() {
+    const isDepositMode = (localStorage.getItem('trx_type') === 'DEPOSIT');
+    if (isDepositMode) {
+      // In deposit mode, we don't recalculate taxes or discounts
+      let depAmt = parseFloat(localStorage.getItem('deposit_amount')) || 0;
+      GRAND_TOTAL = depAmt;
+      document.getElementById('bTotal').textContent = fmtRp(GRAND_TOTAL);
+      updateRemaining();
+      return;
+    }
+    
+    let dpp = baseSubtotal - paymentDiscount;
+    if (dpp < 0) dpp = 0;
+    let tax = Math.round(dpp * 0.11);
+    GRAND_TOTAL = dpp + tax;
+    
+    document.getElementById('bSubtotal').textContent = fmtRp(baseSubtotal);
+    document.getElementById('bDiscount').textContent = '− ' + fmtRp(paymentDiscount);
+    document.getElementById('bTax').textContent = fmtRp(tax);
+    document.getElementById('bTotal').textContent = fmtRp(GRAND_TOTAL);
+    updateRemaining();
+  }
+
+  let baseSubtotal = parseInt(overrideTotal || localStorage.getItem('ireap_total') || '0', 10);
+  let paymentDiscount = 0;
+  let GRAND_TOTAL = 0;
+  let CURRENT_REMAINING = 0;
+
+  
+  function renderMemberInfo() {
+    const memEmpty = document.getElementById('payMemberEmpty');
+    const memAttached = document.getElementById('payMemberAttached');
+    if (cartData.member_id) {
+      memEmpty.style.display = 'none';
+      memAttached.style.display = 'flex';
+      document.getElementById('payMemberId').textContent = cartData.member_id;
+      document.getElementById('payMemberName').textContent = cartData.member_name || ('Member ' + cartData.member_id);
+      document.getElementById('payMemberPoints').textContent = '1250';
+    } else {
+      memEmpty.style.display = 'flex';
+      memAttached.style.display = 'none';
+    }
+  }
+  renderMemberInfo();
+
+  const searchInput = document.getElementById('payMemberSearch');
+  const typeahead = document.getElementById('payMemberTypeahead');
+  const notFoundHint = document.getElementById('payMemberNotFoundHint');
+
+  searchInput?.addEventListener('input', function() {
+    const q = this.value.trim().toLowerCase();
+    if (!q) {
+      typeahead.style.display = 'none';
+      notFoundHint.style.display = 'none';
+      return;
+    }
+    const cleanQ = String(q).replace(/\D/g,'');
+    const results = mockMembers.filter(m => String(m.name||'').toLowerCase().includes(q) || (cleanQ && String(m.phone||'').replace(/\D/g,'').includes(cleanQ))).slice(0, 5);
+    
+    if (results.length > 0) {
+      typeahead.innerHTML = results.map(m => `
+        <div style="padding:8px 12px;font-size:12px;cursor:pointer;border-bottom:1px solid #F1F5F9;" onmouseover="this.style.background='#F8FAFF'" onmouseout="this.style.background='transparent'" onclick="attachMemberObj('${m.id}')">
+          <div style="font-weight:600;color:#0F172A;">${m.name}</div>
+          <div style="color:#64748B;font-size:11px;margin-top:2px;">${m.id} &middot; ${m.phone} &middot; ${m.tier} (${m.points} pts)</div>
+        </div>
+      `).join('');
+      typeahead.style.display = 'block';
+      notFoundHint.style.display = 'none';
+    } else {
+      typeahead.style.display = 'none';
+      notFoundHint.style.display = 'block';
+    }
+  });
+
+  window.attachMemberObj = function(id) {
+    const m = mockMembers.find(x => x.id === id);
+    if(m) {
+      cartData.member_id = m.id;
+      cartData.member_name = m.name;
+      showToast('Member found: ' + m.name);
+      searchInput.value = '';
+      typeahead.style.display = 'none';
+      renderMemberInfo();
+      
+      const activeTab = document.querySelector('.method-tab.active');
+      if (activeTab && activeTab.dataset.method === 'point') {
+         const area = document.getElementById('payFormArea');
+         area.innerHTML = pointForm();
+         bindPoint();
+         paintIcons(area);
+      }
+    }
+  };
+
+  searchInput?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      const firstRes = typeahead.querySelector('div[onclick^="attachMemberObj"]');
+      if (firstRes && typeahead.style.display !== 'none') {
+        firstRes.click();
+      }
+    }
+  });
+
+  document.getElementById('payMemberClearBtn')?.addEventListener('click', () => {
+    cartData.member_id = null;
+    cartData.member_name = null;
+    showToast('Member removed');
+    renderMemberInfo();
+    
+    // Re-render point form if it is active
+    const activeTab = document.querySelector('.method-tab.active');
+    if (activeTab && activeTab.dataset.method === 'point') {
+       const area = document.getElementById('payFormArea');
+       area.innerHTML = pointForm();
+       bindPoint();
+       paintIcons(area);
+    }
+  });
+
+  const inputPct = document.getElementById('discPayPercent');
+  const inputRp = document.getElementById('discPayAmount');
+  const authPrompt = document.getElementById('authPrompt');
+  const authBadge = document.getElementById('authStatusBadge');
+  
+  let authorized = false;
+
+  inputPct.addEventListener('input', () => {
+    let pct = parseFloat(inputPct.value) || 0;
+    if (pct < 0) pct = 0; if (pct > 100) pct = 100;
+    let rp = Math.round(baseSubtotal * (pct / 100));
+    inputRp.value = rp ? rp.toLocaleString('id-ID') : '';
+    checkAuth(pct);
+  });
+
+  inputRp.addEventListener('input', function(e) {
+    let raw = this.value.replace(/[^\d]/g, '');
+    let rp = parseInt(raw, 10) || 0;
+    if (rp > baseSubtotal) rp = baseSubtotal;
+    this.value = rp ? rp.toLocaleString('id-ID') : '';
+    let pct = baseSubtotal > 0 ? (rp / baseSubtotal) * 100 : 0;
+    inputPct.value = pct ? Number.isInteger(pct) ? pct : pct.toFixed(2) : '';
+    checkAuth(pct);
+  });
+
+  function checkAuth(pct) {
+    if (pct > 15) {
+      if (!authorized) {
+        authPrompt.style.display = 'flex';
+        authBadge.style.display = 'none';
+      }
+    } else {
+      authPrompt.style.display = 'none';
+      authBadge.style.display = 'none';
+      authorized = false; // reset
+    }
+  }
+
+  document.getElementById('btnAuthorizeDisc').addEventListener('click', () => {
+    if (document.getElementById('authPin').value) {
+      authorized = true;
+      authPrompt.style.display = 'none';
+      authBadge.style.display = 'block';
+      document.getElementById('authPin').value = '';
+      showToast('Otorisasi berhasil', 'verified_user');
+    } else {
+      showToast('Masukkan PIN SPV', 'error_outline');
+    }
+  });
+
+  document.getElementById('btnApplyDisc').addEventListener('click', () => {
+    let pct = parseFloat(inputPct.value) || 0;
+    if (pct > 15 && !authorized) {
+      showToast('Diskon > 15% butuh otorisasi SPV', 'error_outline');
+      return;
+    }
+    let rp = parseRp(inputRp.value) || 0;
+    paymentDiscount = rp;
+    if (paymentDiscount > baseSubtotal) paymentDiscount = baseSubtotal;
+
+    // Clear active promo if any manual discount is applied
+    currentAppliedPromoId = null;
+    document.querySelectorAll('.promo-item').forEach(el => {
+        el.classList.remove('active');
+        let btn = el.querySelector('.promo-apply-btn');
+        btn.innerHTML = 'Apply';
+        btn.style.color = '#4F46E5';
+    });
+
+    recalcTotals();
+    showToast(`Discount Applied: ${fmtRp(paymentDiscount)}`, 'percent');
+  });
+
+  /* ── TOAST ── */
+  let toastTimer;
+  function showToast(msg, icon='check_circle') {
+    const t = document.getElementById('toast');
+    t.querySelector('.material-icons').innerHTML = svgFor(icon);
+    document.getElementById('toastMsg').textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(()=>t.classList.remove('show'), 2800);
+  }
+
+  /* ── VOUCHER / DEPOSIT LOOKUP DB ── */
+  const VOUCHERS  = { voucher1:100000, voucher2:200000 };
+  const DEPOSITS  = { deposit1:100000, deposit2:200000 };
+
+  /* ── PAYMENT STATE ── */
+  let paymentList = [];
+  const METHOD_META = {
+    cash:    { label:'Cash',    icon:'account_balance_wallet', color:'#1D4ED8', bg:'#EFF6FF' },
+    card:    { label:'Card',    icon:'credit_card',            color:'#7C3AED', bg:'#F5F3FF' },
+    voucher: { label:'Voucher', icon:'local_offer',            color:'#B45309', bg:'#FFFBEB' },
+    qris:    { label:'QRIS',    icon:'qr_code_2',              color:'#0F766E', bg:'#F0FDFA' },
+    deposit: { label:'Deposit', icon:'account_balance',        color:'#059669', bg:'#F0FDF4' },
+    point:   { label:'Redeem Poin', icon:'stars',              color:'#EAB308', bg:'#FEF9C3' },
+  };
+
+  function addPayment(method, amount, note='') {
+    if (amount <= 0) { showToast('Enter a valid amount', 'error_outline'); return; }
+    const meta = METHOD_META[method];
+    paymentList.push({ method, label: meta.label + (note ? ` (${note})` : ''), amount, icon: meta.icon, color: meta.color, bg: meta.bg });
+    renderPaymentList();
+    updateRemaining();
+    showToast(`${fmtRp(amount)} via ${meta.label} added`);
+  }
+
+  function removePayment(i) {
+    paymentList.splice(i, 1);
+    renderPaymentList();
+    updateRemaining();
+  }
+
+  function renderPaymentList() {
+    const area = document.getElementById('payListArea');
+    const empty = document.getElementById('payListEmpty');
+    document.getElementById('payListCount').textContent = paymentList.length + ' entry';
+    if (!paymentList.length) {
+      area.innerHTML = '<div class="pay-list-empty" id="payListEmpty">No payments added yet.</div>';
+      return;
+    }
+    area.innerHTML = paymentList.map((p, i) => `
+      <div class="pay-entry">
+        <div class="pay-entry-left">
+          <div class="pay-entry-icon" style="background:${p.bg};color:${p.color};">
+            <span class="material-icons">${p.icon}</span>
+          </div>
+          <div>
+            <div class="pay-entry-label">${p.label}</div>
+          </div>
+        </div>
+        <div class="pay-entry-right">
+          <span class="pay-entry-amount">${fmtRp(p.amount)}</span>
+          <button class="pay-entry-del" onclick="removePayment(${i})"><span class="material-icons">delete_outline</span></button>
+        </div>
+      </div>`).join('');
+    paintIcons(area);
+  }
+
+  function updateRemaining() {
+    const paid = paymentList.reduce((s,p)=>s+p.amount, 0);
+    const diff = GRAND_TOTAL - paid;
+    CURRENT_REMAINING = diff > 0 ? diff : 0;
+    document.getElementById('bPaid').textContent = fmtRp(paid);
+    const box = document.getElementById('bRemainingBox');
+    const lbl = document.getElementById('bRemainingLbl');
+    const val = document.getElementById('bRemainingVal');
+    if (diff > 0) {
+      box.className = 'bill-remaining owe';
+      lbl.textContent = 'Remaining Balance';
+      val.textContent = fmtRp(diff);
+      document.getElementById('confirmBtn').disabled = true;
+    } else {
+      box.className = 'bill-remaining change';
+      lbl.textContent = 'Change';
+      val.textContent = fmtRp(-diff);
+      document.getElementById('confirmBtn').disabled = false;
+    }
+  }
+
+  /* ── METHOD TABS ── */
+  let currentMethod = 'cash';
+  document.getElementById('methodRow').addEventListener('click', e => {
+    const tab = e.target.closest('.method-tab');
+    if (!tab) return;
+    document.querySelectorAll('.method-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    currentMethod = tab.dataset.method;
+    renderForm();
+  });
+
+  /* ── FORMS ── */
+  function renderForm() {
+    const area = document.getElementById('payFormArea');
+    switch (currentMethod) {
+      case 'cash':   area.innerHTML = cashForm();   bindCash();   break;
+      case 'card':   area.innerHTML = cardForm();   bindCard();   break;
+      case 'voucher':area.innerHTML = voucherForm();bindVoucher();break;
+      case 'qris':   area.innerHTML = qrisForm();                 break;
+      case 'deposit':area.innerHTML = depositForm();bindDeposit();break;
+        case 'point':  area.innerHTML = pointForm();  bindPoint();  break;
+    }
+    paintIcons(area);
+  }
+
+  
+  /* POINT form */
+  function pointForm() {
+    const hasMember = !!cartData.member_id;
+    const availPoints = hasMember ? 1250 : 0;
+    return `
+      <div class="pay-field"><label>Points to Redeem (1 Pt = Rp 100)</label>
+        <div style="background:#F8FAFC; border:1px solid #E2E8F0; padding:10px 12px; border-radius:8px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;">
+          <div style="font-size:12px; color:#64748B; font-weight:600;">Available Points</div>
+          <div style="font-size:14px; font-weight:700; color:#0F172A;">${availPoints} pts</div>
+        </div>
+        <input class="pay-input num" id="pointAmount" type="number" placeholder="0" min="0" max="${availPoints}"/>
+        <div style="font-size:12.5px;color:#64748B;margin-top:6px;display:flex;justify-content:space-between;">
+          <span>Value in IDR:</span>
+          <span id="pointEqv" style="font-weight:700;color:#16A34A;">Rp 0</span>
+        </div>
+      </div>
+      <div style="display:flex; justify-content:flex-end;">
+        <button class="btn-add-action" id="btnAddPoint"><span class="material-icons">add</span>Add >></button>
+      </div>
+    `;
+  }
+
+  function bindPoint() {
+    const inp = document.getElementById('pointAmount');
+    const eqv = document.getElementById('pointEqv');
+    const btn = document.getElementById('btnAddPoint');
+    
+    const hasMember = !!cartData.member_id;
+    const availPoints = hasMember ? 1250 : 0;
+
+    inp.addEventListener('input', () => {
+      let pts = parseInt(inp.value) || 0;
+      if (pts > availPoints) {
+        pts = availPoints;
+        inp.value = pts;
+      }
+      const rp = pts * 100;
+      eqv.textContent = fmtRp(rp);
+    });
+
+    btn.addEventListener('click', () => {
+      let pts = parseInt(inp.value) || 0;
+      if (pts <= 0) return;
+      const rp = pts * 100;
+      
+      let finalRp = rp;
+      if (finalRp > CURRENT_REMAINING) {
+        finalRp = CURRENT_REMAINING;
+        // Adjust points to match actual needed? No, user inputs points, so we deduct that many points. But they might overpay? We just use finalRp.
+      }
+
+      addPayment('point', finalRp, `${pts} pts`);
+      inp.value = '';
+      eqv.textContent = 'Rp 0';
+    });
+  }
+
+
+  /* CASH form (matching reference: Currency + Amount + Rate) */
+  function cashForm() { return `
+    <div class="pay-field"><label>Amount</label>
+      <input class="pay-input num" id="cashAmount" type="number" placeholder="0" min="0"/>
+      <div class="quick-cash-row">
+        <button class="btn-quick-cash" id="qcExact">Exact Amount</button>
+        <button class="btn-quick-cash" id="qc50">Rp 50.000</button>
+        <button class="btn-quick-cash" id="qc100">Rp 100.000</button>
+      </div>
+    </div>
+    <div class="btn-add">
+      <button class="btn-add-action" id="cashAddBtn"><span class="material-icons">add</span>Add &gt;&gt;</button>
+    </div>`; }
+
+  function bindCash() {
+    const amt = document.getElementById('cashAmount');
+    if (CURRENT_REMAINING > 0) amt.value = CURRENT_REMAINING;
+    
+    document.getElementById('qcExact').addEventListener('click', () => { amt.value = CURRENT_REMAINING; });
+    document.getElementById('qc50').addEventListener('click', () => { amt.value = 50000; });
+    document.getElementById('qc100').addEventListener('click', () => { amt.value = 100000; });
+    
+    document.getElementById('cashAddBtn').addEventListener('click', () => {
+      const a = parseFloat(amt.value)||0;
+      addPayment('cash', Math.round(a));
+      amt.value = ''; amt.focus();
+    });
+  }
+
+  /* CARD form */
+  function cardForm() { return `
+    <div class="pay-field"><label>Card Number</label>
+      <input class="pay-input num" id="cardNo" type="text" placeholder="e.g. 4111 1111 1111 1111"/>
+    </div>
+    <div class="pay-field"><label>Amount</label>
+      <input class="pay-input num" id="cardAmount" type="number" placeholder="0" min="0"/>
+    </div>
+    <div class="pay-field"><label>Approval Code</label>
+      <input class="pay-input num" id="cardAppr" type="text" placeholder="e.g. 123456"/>
+    </div>
+    <div class="btn-add">
+      <button class="btn-add-action" id="cardAddBtn"><span class="material-icons">add</span>Add &gt;&gt;</button>
+    </div>`; }
+
+  function bindCard() {
+    const amt = document.getElementById('cardAmount');
+    if (CURRENT_REMAINING > 0) amt.value = CURRENT_REMAINING;
+    
+    document.getElementById('cardAddBtn').addEventListener('click', () => {
+      const a = parseFloat(amt.value)||0;
+      const no = document.getElementById('cardNo').value;
+      const app = document.getElementById('cardAppr').value;
+      let note = [];
+      if (no) note.push(`Card: ${no}`);
+      if (app) note.push(`Appr: ${app}`);
+      addPayment('card', a, note.join(' | '));
+      amt.value = ''; document.getElementById('cardNo').value=''; document.getElementById('cardAppr').value='';
+    });
+  }
+
+  /* VOUCHER form */
+  function voucherForm() { return `
+    <div class="pay-field"><label>Voucher No</label>
+      <div class="check-row">
+        <input class="pay-input" id="voucherNo" type="text" placeholder="e.g. voucher1"/>
+        <button class="btn-check" id="voucherCheckBtn"><span class="material-icons">search</span>Check</button>
+      </div>
+      <div id="voucherStatus"></div>
+    </div>
+    <div class="pay-field"><label>Amount</label>
+      <input class="pay-input num" id="voucherAmount" type="text" readonly placeholder="Auto-filled after check"/>
+    </div>
+    <div class="btn-add">
+      <button class="btn-add-action" id="voucherAddBtn" disabled><span class="material-icons">add</span>Add &gt;&gt;</button>
+    </div>`; }
+
+  function bindVoucher() {
+    let validAmount = 0;
+    document.getElementById('voucherCheckBtn').addEventListener('click', () => {
+      const code = document.getElementById('voucherNo').value.trim().toLowerCase();
+      const amount = VOUCHERS[code];
+      const statusEl = document.getElementById('voucherStatus');
+      const amtEl = document.getElementById('voucherAmount');
+      const addBtn = document.getElementById('voucherAddBtn');
+      if (amount) {
+        validAmount = amount;
+        amtEl.value = fmtRp(amount);
+        amtEl.className = 'pay-input num valid';
+        statusEl.innerHTML = `<div class="status-badge valid"><span class="material-icons">check_circle</span>Valid — ${fmtRp(amount)}</div>`;
+        addBtn.disabled = false;
+      } else {
+        validAmount = 0;
+        amtEl.value = '';
+        amtEl.className = 'pay-input num invalid';
+        statusEl.innerHTML = `<div class="status-badge invalid"><span class="material-icons">cancel</span>Invalid Voucher</div>`;
+        addBtn.disabled = true;
+      }
+      paintIcons(document.getElementById('payFormArea'));
+    });
+    document.getElementById('voucherNo').addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('voucherCheckBtn').click(); });
+    document.getElementById('voucherAddBtn').addEventListener('click', () => {
+      const code = document.getElementById('voucherNo').value.trim();
+      addPayment('voucher', validAmount, code);
+      document.getElementById('voucherNo').value='';
+      document.getElementById('voucherAmount').value='';
+      document.getElementById('voucherAmount').className='pay-input num';
+      document.getElementById('voucherStatus').innerHTML='';
+      document.getElementById('voucherAddBtn').disabled=true;
+      validAmount=0;
+    });
+  }
+
+  /* QRIS form */
+  function qrisForm() { return `
+    <div class="qris-notice">
+      <span class="material-icons">construction</span>
+      <div>
+        <div class="qris-notice-title">Fitur QRIS masih dalam pengembangan</div>
+        <div class="qris-notice-sub">Metode pembayaran QRIS belum tersedia saat ini. Silakan gunakan metode lain (Cash, Card, atau Voucher) untuk melanjutkan transaksi.</div>
+      </div>
+    </div>`; }
+
+  /* DEPOSIT form */
+  function depositForm() { return `
+    <div class="pay-field"><label>Deposit No</label>
+      <div class="check-row">
+        <input class="pay-input" id="depositNo" type="text" placeholder="e.g. deposit1"/>
+        <button class="btn-check" id="depositCheckBtn"><span class="material-icons">search</span>Check</button>
+      </div>
+      <div id="depositStatus"></div>
+    </div>
+    <div class="pay-field"><label>Amount</label>
+      <input class="pay-input num" id="depositAmount" type="text" readonly placeholder="Auto-filled after check"/>
+    </div>
+    <div class="btn-add">
+      <button class="btn-add-action" id="depositAddBtn" disabled><span class="material-icons">add</span>Add &gt;&gt;</button>
+    </div>`; }
+
+  function bindDeposit() {
+    let validAmount = 0;
+    document.getElementById('depositCheckBtn').addEventListener('click', () => {
+      const code = document.getElementById('depositNo').value.trim().toLowerCase();
+      const amount = DEPOSITS[code];
+      const statusEl = document.getElementById('depositStatus');
+      const amtEl = document.getElementById('depositAmount');
+      const addBtn = document.getElementById('depositAddBtn');
+      if (amount) {
+        validAmount = amount;
+        amtEl.value = fmtRp(amount);
+        amtEl.className = 'pay-input num valid';
+        statusEl.innerHTML = `<div class="status-badge valid"><span class="material-icons">check_circle</span>Valid — ${fmtRp(amount)}</div>`;
+        addBtn.disabled = false;
+      } else {
+        validAmount = 0;
+        amtEl.value = '';
+        amtEl.className = 'pay-input num invalid';
+        statusEl.innerHTML = `<div class="status-badge invalid"><span class="material-icons">cancel</span>Invalid Deposit</div>`;
+        addBtn.disabled = true;
+      }
+      paintIcons(document.getElementById('payFormArea'));
+    });
+    document.getElementById('depositNo').addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('depositCheckBtn').click(); });
+    document.getElementById('depositAddBtn').addEventListener('click', () => {
+      const code = document.getElementById('depositNo').value.trim();
+      addPayment('deposit', validAmount, code);
+      document.getElementById('depositNo').value='';
+      document.getElementById('depositAmount').value='';
+      document.getElementById('depositAmount').className='pay-input num';
+      document.getElementById('depositStatus').innerHTML='';
+      document.getElementById('depositAddBtn').disabled=true;
+      validAmount=0;
+    });
+  }
+
+  /* ── CONFIRM ── */
+  document.getElementById('confirmBtn').addEventListener('click', () => {
+    document.getElementById('confirmDialog').showModal();
+  });
+  function closeConfirm(action) {
+    document.getElementById('confirmDialog').close();
+    const msgs = { all:'Struk dikirim via Print & Email', print:'Struk dicetak', email:'Struk dikirim via Email' };
+    showToast(msgs[action]||'Selesai');
+    
+    // Clear UI and redirect back instead of submitting to backend
+    setTimeout(() => {
+      localStorage.removeItem('trx_type');
+      localStorage.removeItem('deposit_id');
+      localStorage.removeItem('deposit_amount');
+      localStorage.removeItem('deposit_note');
+      
+      // Save to history_sales
+      if (localStorage.getItem('trx_type') !== 'DEPOSIT') {
+         let history = [];
+         try { history = JSON.parse(localStorage.getItem('history_sales')) || []; } catch(e){}
+         history.push({
+           id: sessionTrxNumber,
+           date: new Date().toISOString(),
+           cart: cartData,
+           total: GRAND_TOTAL
+         });
+         localStorage.setItem('history_sales', JSON.stringify(history));
+         
+         seq++;
+         localStorage.setItem('sales_seq', seq.toString());
+      }
+
+      // Simulate successful save
+      const finishDlg = document.createElement('dialog');
+      finishDlg.style.cssText = 'padding:24px; border:none; border-radius:12px; max-width:300px; text-align:center; box-shadow:0 10px 25px rgba(0,0,0,0.2); outline:none; margin:auto; font-family:"Inter", sans-serif;';
+      finishDlg.innerHTML = `
+        <div style="color:#10B981; margin-bottom:12px;">
+          <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;"><circle cx="12" cy="12" r="9"></circle><polyline points="8.5 12 11 14.5 16 9"></polyline></svg>
+        </div>
+        <div style="font-size:16px; font-weight:700; color:#0F172A; margin-bottom:8px;">Transaksi Berhasil</div>
+        <div style="font-size:13px; color:#64748B;">Disimpan ke memori sementara (No DB). Back to Sales...</div>
+      `;
+      document.body.appendChild(finishDlg);
+      finishDlg.showModal();
+      
+      setTimeout(() => {
+         window.location.href='index.html';
+      }, 2500);
+    }, 1000);
+  }
+  document.getElementById('confirmDialog').addEventListener('click', e => {
+    const r = document.getElementById('confirmDialog').getBoundingClientRect();
+    if (e.clientX < r.left||e.clientX > r.right||e.clientY < r.top||e.clientY > r.bottom)
+      document.getElementById('confirmDialog').close();
+  });
+
+  /* ── ICON SYSTEM (same as SalesFrame5) ── */
+  const ICONS = {
+    storefront:'<path d="M3 9.5 4.5 4h15L21 9.5"/><path d="M4 9.5V20h16V9.5"/><path d="M9 20v-6h6v6"/><path d="M4 9.5a2.5 2 0 0 0 5 0 2.5 2 0 0 0 5 0 2.5 2 0 0 0 5 0"/>',
+    payments:'<rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/>',
+    receipt_long:'<path d="M5 3v18l2-1 2 1 2-1 2 1 2-1 2 1V3l-2 1-2-1-2 1-2-1-2 1z"/><line x1="8" y1="8" x2="16" y2="8"/><line x1="8" y1="12" x2="16" y2="12"/>',
+    list:'<line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>',
+    account_balance_wallet:'<path d="M3 6a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/><path d="M16 12a1 1 0 1 0 2 0 1 1 0 0 0-2 0"/>',
+    credit_card:'<rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/>',
+    local_offer:'<path d="M20.59 13.41 13.42 20.6a2 2 0 0 1-2.83 0L2 12V2h10z"/><circle cx="7" cy="7" r="1.4"/>',
+    qr_code_2:'<path d="M4 8V5a1 1 0 0 1 1-1h3"/><path d="M16 4h3a1 1 0 0 1 1 1v3"/><path d="M20 16v3a1 1 0 0 1-1 1h-3"/><path d="M8 20H5a1 1 0 0 1-1-1v-3"/><line x1="4" y1="12" x2="20" y2="12"/>',
+    account_balance:'<path d="M3 9l9-7 9 7v11H3z"/><rect x="9" y="13" width="6" height="7"/>',
+    add:'<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
+    search:'<circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>',
+    check_circle:'<circle cx="12" cy="12" r="9"/><polyline points="8.5 12 11 14.5 16 9"/>',
+    cancel:'<circle cx="12" cy="12" r="9"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>',
+    error_outline:'<circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="13"/><circle cx="12" cy="16" r=".5" fill="currentColor"/>',
+    delete_outline:'<polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/>',
+    arrow_back:'<line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>',
+    print:'<polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/>',
+    construction:'<path d="m15.6 9-1.4-2.4-2.4 1.4-1.4-2.4L8 7l1.4 2.4-2.4 1.4 1.4 2.4-2.4 1.4L7.4 17l2.4-1.4 1.4 2.4 2.4-1.4L15 19l1.4-2.4 2.4 1.4 1.4-2.4 2.4-1.4-1.4-2.4 1.4-2.4z"/>',
+    person:'<circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/>',
+    close:'<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>',
+    stars:'<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>',
+    percent:'<line x1="19" y1="5" x2="5" y2="19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/>',
+    admin_panel_settings:'<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
+    weekend:'<path d="M21 10c-1.1 0-2 .9-2 2v3H5v-3c0-1.1-.9-2-2-2s-2 .9-2 2v5c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2v-5c0-1.1-.9-2-2-2zm-14 1c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm10 0c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4z"/>',
+    new_releases:'<path d="M23 12l-2.44-2.78.34-3.68-3.61-.82-1.89-3.18L12 3 8.6 1.54 6.71 4.72l-3.61.81.34 3.68L1 12l2.44 2.78-.34 3.69 3.61.82 1.89 3.18L12 21l3.4 1.46 1.89-3.18 3.61-.82-.34-3.68L23 12zm-10 5h-2v-2h2v2zm0-4h-2V7h2v6z"/>',
+  };
+  function svgFor(n) {
+    const b = ICONS[n]||'<circle cx="12" cy="12" r="9"/>';
+    return `<svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle">${b}</svg>`;
+  }
+  function paintIcons(root) {
+    (root||document).querySelectorAll('.material-icons').forEach(el => {
+      if (el.dataset.painted) return;
+      el.dataset.painted = '1';
+      el.innerHTML = svgFor(el.textContent.trim());
+      el.style.cssText += 'display:inline-flex;align-items:center;justify-content:center;';
+    });
+  }
+
+
+  /* ── PROMOTIONS ── */
+  const promos = [
+    { id: 'p1', icon: 'credit_card', title: 'Card Discount', desc: '10% off on purchases over Rp 1.500.000', type: 'pct', val: 10, min: 1500000 },
+    { id: 'p2', icon: 'local_offer', title: 'Voucher AXD231', desc: '-Rp 50.000 fixed discount', type: 'rp', val: 50000 },
+    { id: 'p3', icon: 'new_releases', title: 'New User Promo', desc: '15% off first transaction', type: 'pct', val: 15 },
+    { id: 'p4', icon: 'weekend', title: 'Weekend Special with XXX Card', desc: '5% off on weekends', type: 'pct', val: 5 }
+  ];
+
+  function renderPromos() {
+    const area = document.getElementById('promoListArea');
+    area.innerHTML = promos.map(p => `
+      <div class="promo-item" id="promo_${p.id}">
+        <div class="promo-item-left">
+          <div class="promo-item-icon"><span class="material-icons">${p.icon}</span></div>
+          <div>
+            <div class="promo-item-title">${p.title}</div>
+            <div class="promo-item-desc">${p.desc}</div>
+          </div>
+        </div>
+        <button class="promo-apply-btn" onclick="applyPromo('${p.id}')">Apply</button>
+      </div>
+    `).join('');
+    paintIcons(area);
+  }
+
+  let currentAppliedPromoId = null;
+
+  function applyPromo(id) {
+    const p = promos.find(x => x.id === id);
+    if (!p) return;
+
+    // Toggle unapply
+    if (currentAppliedPromoId === id) {
+       currentAppliedPromoId = null;
+       paymentDiscount = 0;
+       recalcTotals();
+       document.querySelectorAll('.promo-item').forEach(el => {
+           el.classList.remove('active');
+           let btn = el.querySelector('.promo-apply-btn');
+           btn.innerHTML = 'Apply';
+           btn.style.color = '#4F46E5';
+       });
+       showToast('Promo dilepas', 'info');
+       return;
+    }
+
+    if (p.min && baseSubtotal < p.min) {
+        showToast('Subtotal tidak memenuhi syarat minimum promo', 'error_outline');
+        return;
+    }
+    
+    document.querySelectorAll('.promo-item').forEach(el => {
+        el.classList.remove('active');
+        let btn = el.querySelector('.promo-apply-btn');
+        btn.innerHTML = 'Apply';
+        btn.style.color = '#4F46E5';
+    });
+
+    currentAppliedPromoId = id;
+    const promoEl = document.getElementById('promo_' + id);
+    promoEl.classList.add('active');
+    
+    let btn = promoEl.querySelector('.promo-apply-btn');
+    btn.innerHTML = '<span class="material-icons" style="font-size:16px;">check_circle</span>Applied';
+    btn.style.color = '#10B981';
+    paintIcons(btn);
+
+    let rp = 0;
+    if (p.type === 'pct') {
+       rp = Math.round(baseSubtotal * (p.val / 100));
+    } else {
+       rp = p.val;
+    }
+    
+    paymentDiscount = rp;
+    if (paymentDiscount > baseSubtotal) paymentDiscount = baseSubtotal;
+    recalcTotals();
+    showToast(`Promo Diterapkan: ${p.title}`, 'local_offer');
+  }
+
+  /* ── INIT ── */
+  renderPromos();
+  let seqStr = localStorage.getItem('sales_seq');
+  let seq = parseInt(seqStr, 10);
+  if (isNaN(seq) || seq < 1) seq = 1;
+  const isReturTrx = localStorage.getItem('trx_type') === 'RETUR';
+  let sessionTrxNumber = `${isReturTrx ? 'RETUR' : 'SALES'}${seq.toString().padStart(3, '0')}`;
+  
+  // Check localStorage for Deposit mode
+  const trxType = localStorage.getItem('trx_type') || 'SALES';
+  const isDepositMode = trxType === 'DEPOSIT';
+  
+  if (isDepositMode) {
+    const depId = localStorage.getItem('deposit_id');
+    const depAmt = parseFloat(localStorage.getItem('deposit_amount')) || 0;
+    sessionTrxNumber = depId;
+    
+    // Hide discount/promo rows in bill summary
+    const billRows = document.querySelector('.bill-rows');
+    billRows.innerHTML = `
+        <div class="bill-row" style="margin-bottom: 8px;">
+          <span>Top-up Deposit</span>
+          <span style="font-weight:600;">${fmtRp(depAmt)}</span>
+        </div>
+    `;
+    
+    GRAND_TOTAL = depAmt;
+    baseSubtotal = depAmt; // Set baseSubtotal for quick cash
+    
+    // Disable Payment Discount section
+    const discBox = document.getElementById('discPayPercent')?.closest('.card');
+    if (discBox) discBox.style.display = 'none';
+    
+    // Disable Promo section
+    const promoBox = document.querySelector('.promo-list')?.closest('.card');
+    if (promoBox) promoBox.style.display = 'none';
+  }
+
+  document.getElementById('displayTrxNo').textContent = sessionTrxNumber;
+  document.getElementById('dialogTrxNo').textContent = sessionTrxNumber;
+
+  paintIcons(document);
+  if (!isDepositMode) {
+     recalcTotals(); // Standard recalculation
+  } else {
+     document.getElementById('bTotal').textContent = fmtRp(GRAND_TOTAL);
+     updateRemaining();
+  }
+  renderForm();
+</script>
+
+  <form id="checkoutSubmitForm" method="POST" action="/checkout" style="display:none;">
+    <input type="hidden" name="cart_data" id="submitCartData">
+    <input type="hidden" name="payment_data" id="submitPaymentData">
+  </form>
+
+</body>
+</html>
+
+
+
+
+
+
+
