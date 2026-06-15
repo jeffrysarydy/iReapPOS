@@ -1,0 +1,2909 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>iREAP POS — Sales</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Inter', sans-serif;
+    background-color: #F0F4F8;
+  }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 99px; }
+
+  /* ── HEADER ── */
+  .pos-header {
+    background: linear-gradient(135deg, #1E3A5F 0%, #1D4ED8 100%);
+    height: 52px;
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    gap: 0;
+    flex-shrink: 0;
+  }
+  .pos-logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+    white-space: nowrap;
+  }
+  .pos-logo .material-icons { font-size: 20px; opacity: 0.9; }
+  .pos-nav {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    margin-left: 28px;
+  }
+  .pos-nav a {
+    font-size: 13px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.65);
+    padding: 5px 12px;
+    border-radius: 6px;
+    text-decoration: none;
+    transition: all 0.15s;
+  }
+  .pos-nav a:hover { background: rgba(255,255,255,0.12); color: #fff; }
+  .pos-nav a.active {
+    background: rgba(255,255,255,0.18);
+    color: #fff;
+    font-weight: 600;
+  }
+
+  /* ── SESSION STRIP ── */
+  .session-strip {
+    background: #fff;
+    border-bottom: 1px solid #E2E8F0;
+    padding: 0 20px;
+    height: 46px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+    gap: 12px;
+  }
+  .session-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    color: #64748B;
+    white-space: nowrap;
+  }
+  .session-item .material-icons { font-size: 14px; color: #94A3B8; }
+  .session-item strong { color: #334155; font-weight: 600; }
+  .session-divider { width: 1px; height: 16px; background: #E2E8F0; margin: 0 4px; flex-shrink: 0; }
+
+  /* ── STORE IDENTITY (consolidated) ── */
+  .store-identity { display: flex; align-items: center; gap: 9px; flex-shrink: 0; min-width: 0; }
+  .store-identity-icon {
+    font-size: 18px; color: #1D4ED8; background: #EFF6FF;
+    width: 30px; height: 30px; border-radius: 7px;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .store-identity-text { line-height: 1.25; min-width: 0; }
+  .store-identity-name { font-size: 13px; font-weight: 700; color: #0F172A; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .store-identity-meta { font-size: 10.5px; font-weight: 500; color: #94A3B8; white-space: nowrap; }
+  .store-identity-meta .dot { margin: 0 5px; color: #CBD5E1; }
+
+  /* ── TRX BADGE (in transaction card header) ── */
+  .trx-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 11px; font-weight: 600; color: #64748B;
+    background: #F8FAFC; border: 1px solid #E2E8F0;
+    padding: 3px 9px; border-radius: 6px;
+    font-variant-numeric: tabular-nums; letter-spacing: 0.01em;
+  }
+  .trx-badge .material-icons { font-size: 13px; color: #94A3B8; }
+  .member-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #EFF6FF;
+    color: #1D4ED8;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 99px;
+    border: 1px solid #BFDBFE;
+  }
+  .member-badge .material-icons { font-size: 12px; }
+
+  /* ── MEMBER ZONE (interactive) ── */
+  .member-zone {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: #F8FAFF;
+    border: 1.5px solid #BFDBFE;
+    border-radius: 8px;
+    padding: 5px 10px;
+    min-width: 320px;
+    flex-shrink: 0;
+  }
+  .member-zone .material-icons { font-size: 16px; color: #1D4ED8; flex-shrink: 0; }
+  .member-input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    font-size: 12.5px;
+    font-family: 'Inter', sans-serif;
+    color: #0F172A;
+    outline: none;
+    min-width: 0;
+  }
+  .member-input::placeholder { color: #94A3B8; font-size: 12px; }
+  .member-zone-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 4px 9px;
+    border-radius: 6px;
+    font-size: 11.5px;
+    font-weight: 600;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    transition: all 0.13s;
+    border: 1.5px solid transparent;
+    white-space: nowrap;
+  }
+  .member-zone-btn .material-icons { font-size: 13px; }
+  .btn-member-lookup {
+    background: #EFF6FF;
+    color: #1D4ED8;
+    border-color: #BFDBFE;
+  }
+  .btn-member-lookup:hover { background: #DBEAFE; }
+  .btn-member-new {
+    background: #F0FDF4;
+    color: #16A34A;
+    border-color: #BBF7D0;
+  }
+  .btn-member-new:hover { background: #DCFCE7; }
+  .btn-member-clear {
+    background: none;
+    border: none;
+    color: #94A3B8;
+    cursor: pointer;
+    padding: 2px;
+    display: flex;
+    align-items: center;
+    border-radius: 4px;
+    transition: color 0.12s;
+  }
+  .btn-member-clear:hover { color: #DC2626; }
+  .btn-member-clear .material-icons { font-size: 15px; }
+
+  /* ── MEMBER ATTACHED STATE ── */
+  .member-attached {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #F0FDF4;
+    border: 1.5px solid #86EFAC;
+    border-radius: 8px;
+    padding: 5px 10px;
+    min-width: 320px;
+    flex-shrink: 0;
+  }
+  .member-attached .material-icons { font-size: 16px; color: #16A34A; flex-shrink: 0; }
+  .member-attached-name { font-size: 12.5px; font-weight: 700; color: #15803D; }
+  .member-attached-sub { font-size: 11px; color: #4ADE80; font-weight: 500; }
+
+  /* ── QUICK REGISTER DIALOG ── */
+  .qr-dialog-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 22px 14px;
+    border-bottom: 1px solid #F1F5F9;
+  }
+  .qr-dialog-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #0F172A;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .qr-dialog-title .material-icons { font-size: 20px; color: #1D4ED8; }
+  .qr-dialog-subtitle { font-size: 12px; color: #94A3B8; margin-top: 2px; }
+  .qr-dialog-body { padding: 18px 22px; display: flex; flex-direction: column; gap: 14px; }
+  .qr-field label {
+    display: block;
+    font-size: 11.5px;
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .qr-field label .req { color: #DC2626; }
+  .qr-input {
+    width: 100%;
+    padding: 9px 12px;
+    border: 1.5px solid #E2E8F0;
+    border-radius: 7px;
+    font-size: 13px;
+    font-family: 'Inter', sans-serif;
+    color: #0F172A;
+    background: #fff;
+    outline: none;
+    transition: border-color 0.13s, box-shadow 0.13s;
+  }
+  .qr-input:focus {
+    border-color: #1D4ED8;
+    box-shadow: 0 0 0 3px rgba(29,78,216,0.09);
+  }
+  .qr-input::placeholder { color: #CBD5E1; }
+  .qr-dialog-footer {
+    padding: 14px 22px 18px;
+    border-top: 1px solid #F1F5F9;
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+  }
+  .btn-qr-cancel {
+    padding: 9px 18px;
+    border-radius: 7px;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: 'Inter', sans-serif;
+    background: #F1F5F9;
+    color: #475569;
+    border: none;
+    cursor: pointer;
+    transition: background 0.13s;
+  }
+  .btn-qr-cancel:hover { background: #E2E8F0; }
+  .btn-qr-save {
+    padding: 9px 20px;
+    border-radius: 7px;
+    font-size: 13px;
+    font-weight: 700;
+    font-family: 'Inter', sans-serif;
+    background: linear-gradient(135deg, #1D4ED8, #2563EB);
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: opacity 0.13s;
+  }
+  .btn-qr-save:hover { opacity: 0.88; }
+  .btn-qr-save .material-icons { font-size: 16px; }
+
+  /* ── ATTACH CONFIRM POPUP ── */
+  .attach-confirm {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    background: rgba(15,23,42,0.45);
+    backdrop-filter: blur(2px);
+    opacity: 0;
+    transition: opacity 0.2s;
+    pointer-events: none;
+  }
+  .attach-confirm.show { opacity: 1; pointer-events: all; }
+  .attach-confirm-box {
+    background: #fff;
+    border-radius: 14px;
+    padding: 28px 30px 24px;
+    max-width: 380px;
+    width: 90%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.18);
+    text-align: center;
+    transform: scale(0.94);
+    transition: transform 0.2s;
+  }
+  .attach-confirm.show .attach-confirm-box { transform: scale(1); }
+  .attach-confirm-icon { font-size: 44px; color: #16A34A; margin-bottom: 10px; }
+  .attach-confirm-title { font-size: 16px; font-weight: 700; color: #0F172A; margin-bottom: 6px; }
+  .attach-confirm-sub { font-size: 13px; color: #64748B; margin-bottom: 20px; line-height: 1.5; }
+  .attach-confirm-member {
+    background: #F0FDF4;
+    border: 1px solid #86EFAC;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-bottom: 20px;
+    text-align: left;
+  }
+  .attach-confirm-member .name { font-size: 14px; font-weight: 700; color: #15803D; }
+  .attach-confirm-member .detail { font-size: 12px; color: #4ADE80; margin-top: 2px; }
+  .attach-btns { display: flex; gap: 8px; }
+  .btn-attach-no {
+    flex: 1; padding: 10px; border-radius: 8px;
+    font-size: 13px; font-weight: 600; font-family: 'Inter', sans-serif;
+    background: #F1F5F9; color: #475569; border: none; cursor: pointer;
+    transition: background 0.13s;
+  }
+  .btn-attach-no:hover { background: #E2E8F0; }
+  .btn-attach-yes {
+    flex: 1; padding: 10px; border-radius: 8px;
+    font-size: 13px; font-weight: 700; font-family: 'Inter', sans-serif;
+    background: linear-gradient(135deg, #16A34A, #22C55E);
+    color: #fff; border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 5px;
+    transition: opacity 0.13s;
+  }
+  .btn-attach-yes:hover { opacity: 0.88; }
+  .btn-attach-yes .material-icons { font-size: 16px; }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: #0F172A;
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 99px;
+    font-size: 13px;
+    font-weight: 500;
+    font-family: 'Inter', sans-serif;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    opacity: 0;
+    transition: opacity 0.25s, transform 0.25s;
+    pointer-events: none;
+    z-index: 2000;
+    white-space: nowrap;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast .material-icons { font-size: 16px; color: #4ADE80; }
+
+  /* ── LAYOUT ── */
+  .pos-body {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 14px;
+    padding: 14px;
+    height: calc(100vh - 90px);
+    overflow: hidden;
+  }
+  .pos-left { display: flex; flex-direction: column; gap: 10px; overflow: hidden; }
+  .pos-right { display: flex; flex-direction: column; gap: 10px; overflow-y: auto; }
+
+  /* ── CARD ── */
+  .card {
+    background: #fff;
+    border-radius: 10px;
+    border: 1px solid #E2E8F0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+
+  /* ── BARCODE STRIP ── */
+  .barcode-area {
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .barcode-input-wrap {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    border: 1px solid #CBD5E1;
+    border-radius: 6px;
+    background: #fff;
+    padding: 0 16px;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .barcode-input-wrap:focus-within {
+    border-color: #3B82F6;
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+  }
+  .barcode-input-wrap .material-icons.scan-icon {
+    font-size: 20px;
+    color: #94A3B8;
+    margin-right: 12px;
+  }
+  .barcode-input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    padding: 12px 0;
+    font-size: 14px;
+    font-family: 'Inter', sans-serif;
+    color: #334155;
+    outline: none;
+  }
+  .barcode-input::placeholder { color: #94A3B8; font-size: 14px; }
+
+  /* ── ACTION BUTTONS ── */
+  .action-btns {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 7px 13px;
+    border-radius: 7px;
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    border: 1.5px solid transparent;
+    white-space: nowrap;
+    font-family: 'Inter', sans-serif;
+  }
+  .btn-action .material-icons { font-size: 15px; }
+  .btn-lookup {
+    background: #F1F5F9;
+    color: #475569;
+    border-color: #E2E8F0;
+  }
+  .btn-lookup:hover { background: #E2E8F0; color: #1E293B; }
+  .btn-discount {
+    background: #F0FDF4;
+    color: #16A34A;
+    border-color: #BBF7D0;
+  }
+  .btn-discount:hover { background: #DCFCE7; }
+  .btn-hold {
+    background: #FFFBEB;
+    color: #D97706;
+    border-color: #FDE68A;
+  }
+  .btn-hold:hover { background: #FEF3C7; }
+  .btn-void {
+    background: #fff;
+    color: #DC2626;
+    border-color: #FECACA;
+  }
+  .btn-void:hover { background: #FEF2F2; }
+  .btn-void.void-active {
+    background: #DC2626;
+    color: #fff;
+    border-color: #DC2626;
+    animation: pulse-red 1.5s infinite;
+  }
+  @keyframes pulse-red {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(220,38,38,0.35); }
+    50% { box-shadow: 0 0 0 5px rgba(220,38,38,0); }
+  }
+
+  /* ── TRANSACTION TABLE ── */
+  .txn-table-wrap { overflow-x: auto; overflow-y: auto; flex: 1; }
+  .txn-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  .txn-table thead th {
+    padding: 8px 12px;
+    text-align: left;
+    font-size: 10.5px;
+    font-weight: 600;
+    color: #94A3B8;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background: #F8FAFC;
+    border-bottom: 1px solid #E2E8F0;
+    white-space: nowrap;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+  .txn-table thead th.right { text-align: right; }
+  .txn-table tbody tr {
+    border-bottom: 1px solid #F1F5F9;
+    transition: background 0.1s;
+    cursor: pointer;
+  }
+  .txn-table tbody tr:hover { background: #F8FAFF; }
+  .txn-table tbody tr:last-child { border-bottom: none; }
+  .txn-table td {
+    padding: 9px 12px;
+    vertical-align: middle;
+    white-space: nowrap;
+  }
+  .txn-table td.right { text-align: right; }
+  .code-cell { color: #94A3B8; font-size: 11.5px; font-variant-numeric: tabular-nums; }
+  .name-cell { color: #0F172A; font-weight: 500; }
+  .price-cell { color: #475569; font-variant-numeric: tabular-nums; }
+  .discount-cell { color: #DC2626; font-variant-numeric: tabular-nums; }
+  .total-cell { color: #0F172A; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+  /* ── QTY STEPPER ── */
+  .qty-stepper {
+    display: inline-flex;
+    align-items: center;
+    border: 1.5px solid #E2E8F0;
+    border-radius: 6px;
+    overflow: hidden;
+    background: #fff;
+  }
+  .qty-btn {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #F8FAFC;
+    border: none;
+    cursor: pointer;
+    font-size: 15px;
+    color: #475569;
+    transition: background 0.12s, color 0.12s;
+    font-family: 'Inter', sans-serif;
+    line-height: 1;
+  }
+  .qty-btn:hover { background: #E2E8F0; color: #0F172A; }
+  .qty-val {
+    min-width: 28px;
+    text-align: center;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #0F172A;
+    padding: 0 4px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ── SPG SELECT ── */
+  .spg-select {
+    border: 1.5px solid #E2E8F0;
+    border-radius: 6px;
+    padding: 4px 6px;
+    font-size: 12px;
+    font-family: 'Inter', sans-serif;
+    color: #334155;
+    background: #fff;
+    outline: none;
+    cursor: pointer;
+    transition: border-color 0.12s;
+    width: 80px;
+  }
+  .spg-select:focus { border-color: #1D4ED8; }
+
+  /* ── TABLE FOOTER ── */
+  .txn-footer {
+    padding: 8px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-top: 1px solid #F1F5F9;
+    gap: 16px;
+  }
+  .txn-hint { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; color: #94A3B8; }
+  .txn-hint .material-icons { font-size: 14px; color: #CBD5E1; }
+  .txn-hint kbd {
+    font-family: 'Inter', sans-serif; font-size: 10px; font-weight: 600; color: #475569;
+    background: #F1F5F9; border: 1px solid #E2E8F0; border-bottom-width: 2px;
+    border-radius: 4px; padding: 1px 5px; margin: 0 1px;
+  }
+  /* selected row (mark for discount / delete) */
+  .txn-table tbody tr.row-selected { background: #EFF6FF !important; box-shadow: inset 3px 0 0 #1D4ED8; }
+  .txn-table tbody tr.row-selected td.name-cell { color: #1D4ED8; font-weight: 600; }
+  .txn-item-count {
+    font-size: 12px;
+    color: #94A3B8;
+  }
+  .txn-item-count strong { color: #475569; }
+
+  /* ── RIGHT PANEL ── */
+  /* Summary card */
+  .summary-card { padding: 16px; }
+  .summary-label { font-size: 10.5px; font-weight: 600; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 10px; }
+  .summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12.5px;
+    color: #64748B;
+    margin-bottom: 6px;
+    gap: 12px;
+  }
+  .summary-row > span:last-child { white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .summary-row.discount-row { color: #DC2626; }
+  .summary-divider {
+    height: 1px;
+    background: #E2E8F0;
+    margin: 10px 0;
+    border: none;
+  }
+  .summary-net {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+    font-weight: 700;
+    color: #0F172A;
+    margin-bottom: 12px;
+  }
+  .total-big {
+    background: linear-gradient(135deg, #F0F7FF 0%, #EEF2FF 100%);
+    border: 1px solid #BFDBFE;
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-bottom: 12px;
+  }
+  .total-big .lbl { font-size: 11px; color: #1D4ED8; font-weight: 600; margin-bottom: 2px; }
+  .total-big .amount { font-size: 30px; font-weight: 800; color: #1E3A5F; letter-spacing: -1px; line-height: 1; font-variant-numeric: tabular-nums; }
+  .btn-payment {
+    width: 100%;
+    background: linear-gradient(135deg, #1D4ED8, #2563EB);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 14px;
+    font-weight: 700;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    transition: opacity 0.15s, transform 0.1s;
+    letter-spacing: -0.2px;
+  }
+  .btn-payment:hover { opacity: 0.92; transform: translateY(-1px); }
+  .btn-payment:active { transform: translateY(0); }
+  .btn-payment .material-icons { font-size: 18px; }
+
+  /* ── PROMOTIONS ── */
+  .section-header {
+    font-size: 12px;
+    font-weight: 700;
+    color: #0F172A;
+    padding: 12px 14px 8px;
+    border-bottom: 1px solid #F1F5F9;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .section-header .material-icons { font-size: 16px; color: #94A3B8; margin-right: 5px; }
+  .promo-item {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 10px 14px;
+    border-bottom: 1px solid #F8FAFC;
+    gap: 8px;
+    transition: background 0.1s;
+  }
+  .promo-item:hover { background: #FAFBFF; }
+  .promo-item:last-child { border-bottom: none; }
+  .promo-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 99px;
+    flex-shrink: 0;
+    margin-top: 5px;
+  }
+  .promo-dot.eligible { background: #22C55E; }
+  .promo-dot.not-eligible { background: #E2E8F0; }
+  .promo-name { font-size: 12px; font-weight: 600; color: #1E293B; margin-bottom: 1px; }
+  .promo-desc { font-size: 11px; color: #94A3B8; line-height: 1.4; }
+  .promo-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
+  .badge-eligible {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 99px;
+    white-space: nowrap;
+  }
+  .badge-eligible.yes { background: #F0FDF4; color: #16A34A; }
+  .badge-eligible.no { background: #F8FAFC; color: #94A3B8; }
+  .btn-select {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 9px;
+    border-radius: 5px;
+    border: 1.5px solid #E2E8F0;
+    background: #fff;
+    color: #475569;
+    cursor: pointer;
+    transition: all 0.12s;
+    font-family: 'Inter', sans-serif;
+  }
+  .btn-select:hover { border-color: #1D4ED8; color: #1D4ED8; background: #EFF6FF; }
+
+  /* ── BEST SELLERS ── */
+  .bestseller-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px 14px 14px;
+  }
+  .bestseller-card {
+    background: #F8FAFC;
+    border: 1.5px solid #E2E8F0;
+    border-radius: 8px;
+    padding: 10px 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .bestseller-card:hover {
+    border-color: #93C5FD;
+    background: #EFF6FF;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(29,78,216,0.08);
+  }
+  .bestseller-rank {
+    font-size: 14px;
+    font-weight: 700;
+    color: #94A3B8;
+    min-width: 20px;
+    text-align: center;
+  }
+  .bestseller-details {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .bestseller-name { font-size: 13px; font-weight: 600; color: #1E293B; }
+  .bestseller-price { font-size: 12px; color: #64748B; }
+  .bestseller-add {
+    font-size: 10.5px;
+    font-weight: 700;
+    color: #1D4ED8;
+    background: #DBEAFE;
+    padding: 6px 10px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .bestseller-add .material-icons { font-size: 14px; }
+
+  /* ── FREQUENT PURCHASES ── */
+  .fp-btn {
+    margin: 0 14px 14px;
+    width: calc(100% - 28px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 9px;
+    border-radius: 7px;
+    border: 1.5px dashed #BFDBFE;
+    background: #F8FBFF;
+    color: #1D4ED8;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .fp-btn:hover { background: #EFF6FF; border-color: #93C5FD; }
+  .fp-btn .material-icons { font-size: 15px; }
+
+  /* ── DIALOG ── */
+  dialog {
+    border: none;
+    border-radius: 12px;
+    padding: 0;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.18);
+    max-height: 90vh;
+    overflow: auto;
+  }
+  dialog::backdrop { background: rgba(15,23,42,0.5); backdrop-filter: blur(2px); }
+
+  /* ── ITEM LOOKUP FORM ── */
+  .lk-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 13px 16px; }
+  .lk-field label { display: block; font-size: 11px; font-weight: 600; color: #475569; margin-bottom: 5px; }
+  .lk-adv-toggle {
+    margin-top: 14px; background: none; border: none; color: #1D4ED8;
+    font-size: 12.5px; font-weight: 600; font-family: 'Inter', sans-serif; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 3px; padding: 2px 0;
+  }
+  .lk-adv-toggle .material-icons { font-size: 16px; transition: transform 0.18s; }
+  .lk-adv-toggle.open .material-icons { transform: rotate(180deg); }
+  .lk-adv-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 13px; }
+  .lk-group { border: 1px solid #E2E8F0; border-radius: 9px; padding: 13px 15px; background: #FAFBFC; }
+  .lk-group-title { font-size: 11px; font-weight: 700; color: #0F172A; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 11px; }
+  .lk-row { display: grid; grid-template-columns: 135px 1fr; align-items: center; gap: 10px; margin-bottom: 7px; }
+  .lk-row:last-child { margin-bottom: 0; }
+  .lk-row label { font-size: 11.5px; color: #64748B; font-weight: 500; }
+  .lk-row .qr-input { padding: 6px 9px; font-size: 12px; }
+  .lk-actionbar { display: flex; align-items: center; justify-content: space-between; padding: 16px 0 4px; }
+  .lk-displaytop { font-size: 12px; color: #64748B; display: flex; align-items: center; gap: 7px; }
+  .lk-result { border-top: 1px solid #E2E8F0; margin-top: 12px; }
+  .lk-result-head { display: flex; align-items: center; justify-content: space-between; padding: 11px 22px 8px; font-size: 12px; font-weight: 700; color: #0F172A; }
+  .lk-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .lk-table thead th {
+    position: sticky; top: 0; background: #F8FAFC; padding: 8px 14px; text-align: left;
+    font-size: 10px; font-weight: 600; color: #94A3B8; text-transform: uppercase;
+    letter-spacing: 0.04em; border-bottom: 1px solid #E2E8F0; white-space: nowrap; z-index: 1;
+  }
+  .lk-table thead th.right { text-align: right; }
+  .lk-table tbody td { padding: 8px 14px; border-bottom: 1px solid #F1F5F9; white-space: nowrap; color: #334155; }
+  .lk-table tbody td.right { text-align: right; font-variant-numeric: tabular-nums; }
+  .lk-table tbody tr:hover { background: #F8FAFF; }
+  .lk-empty { padding: 30px; text-align: center; color: #94A3B8; font-size: 12.5px; }
+
+  /* ── VOID BADGE on header ── */
+  .void-badge {
+    display: none;
+    font-size: 10px;
+    font-weight: 700;
+    background: #DC2626;
+    color: #fff;
+    padding: 1px 6px;
+    border-radius: 99px;
+    margin-left: 6px;
+    vertical-align: middle;
+    animation: pulse-red 1.5s infinite;
+  }
+  .void-badge.show { display: inline-flex; align-items: center; }
+
+  /* ── MEMBER RESULT PANEL ── */
+  .member-result-panel {
+    background: #fff;
+    border: 1.5px solid #E2E8F0;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-top: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 380px;
+    z-index: 100;
+  }
+  .member-result-panel.show {
+    display: block;
+  }
+  .member-result-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    font-size: 11.5px;
+    color: #475569;
+    margin: 8px 0;
+  }
+  .member-result-grid strong { color: #0F172A; }
+  .member-not-found-hint {
+    font-size: 11px;
+    color: #DC2626;
+    margin-top: 5px;
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+  }
+  .member-not-found-hint a {
+    color: #1D4ED8;
+    text-decoration: underline;
+    cursor: pointer;
+    font-weight: 600;
+  }
+
+  /* ── DEPOSIT & RETUR BTNS ── */
+  .btn-deposit { background:#F0FDFA; color:#0F766E; border-color:#99F6E4; }
+  .btn-deposit:hover { background:#CCFBF1; }
+  .btn-retur { background:#FFFBEB; color:#B45309; border-color:#FDE68A; }
+  .btn-retur:hover { background:#FEF3C7; }
+
+  /* ── PROMO APPLIED ── */
+  .btn-select.applied { background:#F0FDF4; color:#16A34A; border-color:#86EFAC; }
+  .btn-select.applied:hover { background:#DCFCE7; }
+</style>
+
+</head>
+<body>
+<div style="height:100vh;display:flex;flex-direction:column;overflow:hidden;">
+
+  <!-- ═══ HEADER ═══ -->
+  <header class="pos-header">
+    <div class="pos-logo">
+      <span class="material-icons">storefront</span>
+      iREAP POS
+    </div>
+    <nav class="pos-nav">
+      <a href="SalesFrame5.html" class="active">Sales</a>
+      <a href="ReprintSales.html">Reprint</a>
+      <div style="width:1px;height:20px;background:rgba(255,255,255,0.2);margin:0 8px;"></div>
+      <a href="#" id="depositBtnTop" style="color:#FFFBEB;"><span class="material-icons" style="font-size:14px;vertical-align:middle;margin-right:4px;">account_balance_wallet</span>Deposit</a>
+      <a href="#" id="returBtnTop" style="color:#FEF3C7;"><span class="material-icons" style="font-size:14px;vertical-align:middle;margin-right:4px;">assignment_return</span>Retur</a>
+    </nav>
+    <div style="margin-left:auto;display:flex;align-items:center;gap:8px;">
+      <span style="font-size:12px;color:rgba(255,255,255,0.6);">Hello,</span>
+      <span style="font-size:12px;font-weight:600;color:#fff;">Budi</span>
+      <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuCCvZIqUp8upHM2YzOCCg52PvSWek2n5-mWNLGyILXX7sXIFlo7txxXiSzzUHT40zaVVNvJ2P1aIXSa_KUimdoIfHBXKU1jo0VMZi62t41Zc7HNnEQ8spREair9d4Woq7aV8oOBGPtTiexZoR8Q_qHEC4NBGiFEsFS8YDtLn5yeuj2JwVCaGc9ZsZB56U5biKGO8j6B8Sg0_9r95Y0sZONWN19nvZvljysIEKMtbFgLoKKMnY1A8xHJQsMcZ1ViSgLetOJ0ZgUdsAdw" alt="User" style="width:28px;height:28px;border-radius:50%;border:2px solid rgba(255,255,255,0.3);">
+    </div>
+  </header>
+
+  <!-- ═══ SESSION STRIP ═══ -->
+  <div class="session-strip">
+    <!-- LEFT: Store identity (consolidated) -->
+    <div class="store-identity">
+      <span class="store-identity-icon material-icons">store</span>
+      <div class="store-identity-text">
+        <div class="store-identity-name">Sterling Tulus Cemerlang</div>
+        <div class="store-identity-meta">Store STEM<span class="dot">&middot;</span>Biz Date 01/06/2026<span class="dot">&middot;</span>Cashier Budi</div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Member zone (interactive) -->
+    <div style="display:flex;align-items:center;gap:8px;position:relative;" id="memberZoneContainer">
+      <span style="font-size:11px;color:#94A3B8;white-space:nowrap;flex-shrink:0;">Member:</span>
+
+      <!-- State A: No member attached (default) -->
+      <div class="member-zone" id="memberZoneEmpty">
+        <button id="memberLookupBtnOpen" title="Lookup Member" style="background:none;border:none;cursor:pointer;display:flex;align-items:center;color:#64748B;padding:0;">
+          <span class="material-icons" style="font-size:22px;color:#1D4ED8;">badge</span>
+        </button>
+        <input class="member-input" id="memberSearchInput" type="text" placeholder="Scan / type Member No..." autocomplete="off"/>
+        <button class="member-zone-btn btn-member-new" id="memberNewBtn" title="Daftarkan member baru">
+          <span class="material-icons">person_add</span>Register
+        </button>
+      </div>
+      <!-- Typeahead dropdown & not found hint -->
+      <div class="typeahead-dropdown" id="memberTypeahead" style="display:none;position:absolute;top:100%;left:0;width:100%;background:#fff;border:1px solid #E2E8F0;border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,0.1);z-index:100;margin-top:4px;max-height:200px;overflow-y:auto;"></div>
+      <div class="member-not-found-hint" id="memberNotFoundHint" style="display:none;position:absolute;top:100%;left:0;font-size:11px;color:#DC2626;margin-top:5px;">Member not found &mdash; <a id="memberHintNewBtn" style="color:#1D4ED8;text-decoration:underline;cursor:pointer;font-weight:600;">[+ Register]</a></div>
+
+      <!-- State B: Member attached (hidden by default) -->
+      <div class="member-attached" id="memberZoneAttached" style="display:none;">
+        <span class="material-icons">verified_user</span>
+        <div style="flex:1;min-width:0;">
+          <div class="member-attached-name" id="attachedMemberName">&mdash;</div>
+          <div class="member-attached-sub" id="attachedMemberSub">&mdash;</div>
+        </div>
+        <button class="btn-member-clear" id="memberClearBtn" title="Lepas member dari transaksi">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MAIN BODY -->
+  <div class="pos-body">
+
+    <!-- ═══ LEFT PANEL ═══ -->
+    <div class="pos-left">
+
+      <!-- Barcode + Actions -->
+      <div class="card" style="flex-shrink:0;">
+        <div class="barcode-area">
+          <div class="barcode-input-wrap">
+            <span class="material-icons scan-icon">qr_code_scanner</span>
+            <input class="barcode-input" type="text" id="barcodeInput" placeholder="Scan barcode or type product code..." autofocus autocomplete="off"/>
+          </div>
+          <div class="action-btns" id="defaultActionBtns">
+            <button class="btn-action btn-lookup" id="lookupBtn">
+              <span class="material-icons">manage_search</span>Lookup
+            </button>
+            <button class="btn-action btn-discount" id="discountBtn">
+              <span class="material-icons">sell</span>Discount
+            </button>
+            <button class="btn-action btn-hold" id="holdBtn">
+              <span class="material-icons">pause_circle</span>Hold
+            </button>
+            <button class="btn-action btn-void" id="voidBtn">
+              <span class="material-icons">remove_circle_outline</span>Void
+              <span class="void-badge" id="voidBadge">ON</span>
+            </button>
+          </div>
+          <div class="action-btns" id="rowActionBtns" style="display:none;">
+            <button class="btn-action" id="btnRowQtyMinus" style="display:none;">
+              <span class="material-icons">remove</span> Qty
+            </button>
+            <button class="btn-action" id="btnRowQtyPlus" style="display:none;">
+              <span class="material-icons">add</span> Qty
+            </button>
+            <button class="btn-action" id="btnRowSpg" style="display:none;">
+              <span class="material-icons">person</span> Ubah SPG
+            </button>
+            <button class="btn-action" id="btnRowDelete" style="background:#FEF2F2;color:#DC2626;border-color:#FECACA;">
+              <span class="material-icons">delete</span> Delete Item
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Transaction Table -->
+      <div class="card" style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
+        <div style="padding:10px 14px 8px;border-bottom:1px solid #F1F5F9;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+          <span style="font-size:13px;font-weight:700;color:#0F172A;">Sales Transaction</span>
+          <span class="trx-badge" id="salesBadge"><span class="material-icons">receipt_long</span><span id="salesBadgeText">SALES001</span></span>
+        </div>
+        <div class="txn-table-wrap">
+          <table class="txn-table">
+            <thead>
+              <tr>
+                <th>Product Code</th>
+                <th>Product Name</th>
+                <th>Qty</th>
+                <th>SPG</th>
+                <th class="right">Unit Price</th>
+                <th class="right">Discount</th>
+                <th class="right">Total</th>
+                <th class="void-col" style="display:none;width:36px;"></th>
+              </tr>
+            </thead>
+            <tbody id="txnBody">
+                <tr>
+                  <td class="code-cell">ST123-AN456</td>
+                  <td class="name-cell">Blue Cotton Shirt</td>
+                  <td>
+                    <div class="qty-stepper">
+                      <button class="qty-btn qty-minus">−</button>
+                      <span class="qty-val qty-value" data-initial="2">2</span>
+                      <button class="qty-btn qty-plus">+</button>
+                    </div>
+                  </td>
+                  <td><select class="spg-select"><option selected>Andi</option><option >Budi</option><option >Cici</option></select></td>
+                  <td class="right price-cell">Rp 189.000</td>
+                  <td class="right discount-cell">- Rp 0</td>
+                  <td class="right total-cell">Rp 378.000</td>
+                  <td class="void-action" style="display:none;"><button class="void-btn" style="background:none;border:none;cursor:pointer;color:#DC2626;padding:4px;"><span class="material-icons" style="font-size:17px;">delete</span></button></td>
+                </tr>
+                <tr>
+                  <td class="code-cell">ST567-AN890</td>
+                  <td class="name-cell">Navy Polo Shirt</td>
+                  <td>
+                    <div class="qty-stepper">
+                      <button class="qty-btn qty-minus">−</button>
+                      <span class="qty-val qty-value" data-initial="1">1</span>
+                      <button class="qty-btn qty-plus">+</button>
+                    </div>
+                  </td>
+                  <td><select class="spg-select"><option >Andi</option><option >Budi</option><option selected>Cici</option></select></td>
+                  <td class="right price-cell">Rp 159.000</td>
+                  <td class="right discount-cell">- Rp 15.900</td>
+                  <td class="right total-cell">Rp 143.100</td>
+                  <td class="void-action" style="display:none;"><button class="void-btn" style="background:none;border:none;cursor:pointer;color:#DC2626;padding:4px;"><span class="material-icons" style="font-size:17px;">delete</span></button></td>
+                </tr>
+                <tr>
+                  <td class="code-cell">ST789-AN012</td>
+                  <td class="name-cell">Red Silk Scarf</td>
+                  <td>
+                    <div class="qty-stepper">
+                      <button class="qty-btn qty-minus">−</button>
+                      <span class="qty-val qty-value" data-initial="1">1</span>
+                      <button class="qty-btn qty-plus">+</button>
+                    </div>
+                  </td>
+                  <td><select class="spg-select"><option >Andi</option><option selected>Budi</option><option >Cici</option></select></td>
+                  <td class="right price-cell">Rp 149.000</td>
+                  <td class="right discount-cell">- Rp 14.900</td>
+                  <td class="right total-cell">Rp 134.100</td>
+                  <td class="void-action" style="display:none;"><button class="void-btn" style="background:none;border:none;cursor:pointer;color:#DC2626;padding:4px;"><span class="material-icons" style="font-size:17px;">delete</span></button></td>
+                </tr>
+                <tr>
+                  <td class="code-cell">ST012-AN345</td>
+                  <td class="name-cell">Green Wool Sweater</td>
+                  <td>
+                    <div class="qty-stepper">
+                      <button class="qty-btn qty-minus">−</button>
+                      <span class="qty-val qty-value" data-initial="1">1</span>
+                      <button class="qty-btn qty-plus">+</button>
+                    </div>
+                  </td>
+                  <td><select class="spg-select"><option >Andi</option><option >Budi</option><option selected>Cici</option></select></td>
+                  <td class="right price-cell">Rp 329.000</td>
+                  <td class="right discount-cell">- Rp 0</td>
+                  <td class="right total-cell">Rp 329.000</td>
+                  <td class="void-action" style="display:none;"><button class="void-btn" style="background:none;border:none;cursor:pointer;color:#DC2626;padding:4px;"><span class="material-icons" style="font-size:17px;">delete</span></button></td>
+                </tr>
+                <tr>
+                  <td class="code-cell">ST901-AN234</td>
+                  <td class="name-cell">White Linen Trousers</td>
+                  <td>
+                    <div class="qty-stepper">
+                      <button class="qty-btn qty-minus">−</button>
+                      <span class="qty-val qty-value" data-initial="2">2</span>
+                      <button class="qty-btn qty-plus">+</button>
+                    </div>
+                  </td>
+                  <td><select class="spg-select"><option selected>Andi</option><option >Budi</option><option >Cici</option></select></td>
+                  <td class="right price-cell">Rp 279.000</td>
+                  <td class="right discount-cell">- Rp 27.900</td>
+                  <td class="right total-cell">Rp 530.100</td>
+                  <td class="void-action" style="display:none;"><button class="void-btn" style="background:none;border:none;cursor:pointer;color:#DC2626;padding:4px;"><span class="material-icons" style="font-size:17px;">delete</span></button></td>
+                </tr>
+                <tr>
+                  <td class="code-cell">ST234-AN567</td>
+                  <td class="name-cell">Beige Canvas Tote Bag</td>
+                  <td>
+                    <div class="qty-stepper">
+                      <button class="qty-btn qty-minus">−</button>
+                      <span class="qty-val qty-value" data-initial="1">1</span>
+                      <button class="qty-btn qty-plus">+</button>
+                    </div>
+                  </td>
+                  <td><select class="spg-select"><option selected>Andi</option><option >Budi</option><option >Cici</option></select></td>
+                  <td class="right price-cell">Rp 199.000</td>
+                  <td class="right discount-cell">- Rp 0</td>
+                  <td class="right total-cell">Rp 199.000</td>
+                  <td class="void-action" style="display:none;"><button class="void-btn" style="background:none;border:none;cursor:pointer;color:#DC2626;padding:4px;"><span class="material-icons" style="font-size:17px;">delete</span></button></td>
+                </tr>
+                <tr>
+                  <td class="code-cell">ST345-AN678</td>
+                  <td class="name-cell">Brown Suede Boots</td>
+                  <td>
+                    <div class="qty-stepper">
+                      <button class="qty-btn qty-minus">−</button>
+                      <span class="qty-val qty-value" data-initial="1">1</span>
+                      <button class="qty-btn qty-plus">+</button>
+                    </div>
+                  </td>
+                  <td><select class="spg-select"><option >Andi</option><option >Budi</option><option selected>Cici</option></select></td>
+                  <td class="right price-cell">Rp 759.000</td>
+                  <td class="right discount-cell">- Rp 0</td>
+                  <td class="right total-cell">Rp 759.000</td>
+                  <td class="void-action" style="display:none;"><button class="void-btn" style="background:none;border:none;cursor:pointer;color:#DC2626;padding:4px;"><span class="material-icons" style="font-size:17px;">delete</span></button></td>
+                </tr></tbody>
+          </table>
+        </div>
+        <div class="txn-footer">
+          <span class="txn-hint"><span class="material-icons">touch_app</span>Click row to select, then press <kbd>Delete</kbd> to remove</span>
+          <span class="txn-item-count">Total Item: <strong id="itemCount">7</strong></span>
+        </div>
+      </div>
+    </div><!-- /pos-left -->
+
+    <!-- ═══ RIGHT PANEL ═══ -->
+    <div class="pos-right">
+
+      <!-- Summary + Payment -->
+      <div class="card" style="position: sticky; top: 0; z-index: 10; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
+        <div class="summary-card">
+          <div class="summary-label">TRANSACTION SUMMARY</div>
+
+          <div class="summary-net" style="display:none;">
+            <span id="sumSubtotal">Rp 0</span>
+            <span id="sumDiscount">- Rp 0</span>
+            <span id="sumNet">Rp 0</span>
+          </div>
+
+          <div class="total-big">
+            <div class="lbl">TOTAL PAYMENT</div>
+            <div class="amount" id="totalBig">Rp 0</div>
+          </div>
+          <div style="font-size:10px;color:#94A3B8;text-align:center;margin-bottom:12px;margin-top:-6px;">*Price excludes 11% VAT</div>
+
+          
+          <button class="btn-payment" onclick="processCheckout()">
+            <span class="material-icons">payment</span>
+            Proceed to Payment <span style="font-size:10px;margin-left:4px;opacity:0.8;">[F6]</span>
+          </button>
+
+        </div>
+      </div>
+
+      
+
+      <!-- Promotions -->
+      <div class="card">
+        <div class="section-header">
+          <span><span class="material-icons" style="font-size:15px;vertical-align:middle;color:#F59E0B;margin-right:4px;">local_offer</span>Available Promotions</span>
+          <span style="font-size:10px;color:#94A3B8;font-weight:500;">3 promotions</span>
+        </div>
+
+        <div class="promo-item">
+          <div style="display:flex;align-items:flex-start;gap:8px;">
+            <span class="promo-dot not-eligible" id="dotPromoA" style="margin-top:5px;"></span>
+            <div>
+              <div class="promo-name">Shirt Bundle 10% Off</div>
+              <div class="promo-desc">Min. 2 shirts, get 10% off on all shirts</div>
+            </div>
+          </div>
+          <div class="promo-right">
+            <span class="badge-eligible no" id="badgePromoA">Not Eligible</span>
+            <button class="btn-select" id="btnPromoA" disabled style="opacity:0.4;cursor:not-allowed;">Select</button>
+          </div>
+        </div>
+
+        <div class="promo-item">
+          <div style="display:flex;align-items:flex-start;gap:8px;">
+            <span class="promo-dot not-eligible" id="dotPromoB" style="margin-top:5px;"></span>
+            <div>
+              <div class="promo-name">Sweater Bundle (Free Scarf)</div>
+              <div class="promo-desc">Buy min. 2 sweaters, get 1 scarf for free</div>
+            </div>
+          </div>
+          <div class="promo-right">
+            <span class="badge-eligible no" id="badgePromoB">Not Eligible</span>
+            <button class="btn-select" id="btnPromoB" disabled style="opacity:0.4;cursor:not-allowed;">Select</button>
+          </div>
+        </div>
+
+        <div class="promo-item">
+          <div style="display:flex;align-items:flex-start;gap:8px;">
+            <span class="promo-dot eligible" id="dotPromoC" style="margin-top:5px;"></span>
+            <div>
+              <div class="promo-name">Member Footwear Deal</div>
+              <div class="promo-desc">Save Rp 50.000 for shoes (member)</div>
+            </div>
+          </div>
+          <div class="promo-right">
+            <span class="badge-eligible yes" id="badgePromoC">Eligible</span>
+            <button class="btn-select" id="btnPromoC">Select</button>
+          </div>
+        </div>
+      </div>
+        <!-- Best Sellers -->
+        <div class="card" style="margin-bottom:14px;">
+          <div class="section-header">
+            🏆 Best Sellers
+            <span style="font-size:10px;color:#94A3B8">Top 4 this week</span>
+          </div>
+          <div class="bestseller-grid" id="bestSellerGrid"></div>
+        </div>
+
+
+    </div><!-- /pos-right -->
+  </div><!-- /pos-body -->
+</div>
+
+<!-- ═══ DIALOGS ═══ -->
+<dialog id="discountDialog" style="width:min(98vw,480px);">
+  <div id="discountDialogContent"></div>
+</dialog>
+
+<dialog id="lookupDialog" style="width:min(98vw,1150px);min-height:70vh;">
+  <div id="lookupDialogContent"></div>
+</dialog>
+
+<dialog id="holdDialog" style="width:min(98vw,520px);min-height:50vh;">
+  <div id="holdDialogContent"></div>
+</dialog>
+
+<dialog id="depositDialog" style="width:min(98vw,440px);">
+  <div id="depositDialogContent"></div>
+</dialog>
+
+<dialog id="returDialog" style="width:min(98vw,750px);">
+  <div id="returDialogContent"></div>
+</dialog>
+
+<!-- Quick Register Member Dialog -->
+<dialog id="quickRegDialog" style="width:min(98vw,440px);">
+  <div class="qr-dialog-header">
+    <div>
+      <div class="qr-dialog-title">
+        <span class="material-icons">person_add</span>
+        Daftarkan Member Baru
+      </div>
+      <div class="qr-dialog-subtitle">Data dapat dilengkapi nanti di halaman Membership</div>
+    </div>
+    <button onclick="document.getElementById('quickRegDialog').close()" style="background:none;border:none;cursor:pointer;color:#94A3B8;padding:4px;border-radius:6px;display:flex;align-items:center;" title="Close">
+      <span class="material-icons" style="font-size:20px;">close</span>
+    </button>
+  </div>
+  <div class="qr-dialog-body">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+      <div class="qr-field" style="grid-column:1/-1;">
+        <label>Full Name <span class="req">*</span></label>
+        <input class="qr-input" id="qrName" type="text" placeholder="Contoh: Siti Rahayu" autocomplete="off"/>
+      </div>
+      <div class="qr-field">
+        <label>No. HP <span class="req">*</span></label>
+        <input class="qr-input" id="qrPhone" type="tel" placeholder="08xxxxxxxxxx" autocomplete="off"/>
+      </div>
+      <div class="qr-field">
+        <label>Date of Birth</label>
+        <input class="qr-input" id="qrDob" type="date"/>
+      </div>
+      <div class="qr-field" style="grid-column:1/-1;">
+        <label>Email</label>
+        <input class="qr-input" id="qrEmail" type="email" placeholder="contoh@email.com" autocomplete="off"/>
+      </div>
+    </div>
+    <!-- Validation error -->
+    <div id="qrError" style="display:none;background:#FEF2F2;border:1px solid #FECACA;border-radius:7px;padding:9px 12px;font-size:12.5px;color:#DC2626;display:flex;align-items:center;gap:6px;">
+      <span class="material-icons" style="font-size:15px;">error_outline</span>
+      <span id="qrErrorMsg">Nama dan No. HP wajib diisi.</span>
+    </div>
+  </div>
+  <div class="qr-dialog-footer">
+    <button class="btn-qr-cancel" onclick="document.getElementById('quickRegDialog').close()">Cancel</button>
+    <button class="btn-qr-save" id="qrSaveBtn">
+      <span class="material-icons">save</span>
+      Save Member
+    </button>
+  </div>
+</dialog>
+
+<!-- Attach Confirm Overlay (custom, not dialog) -->
+<div class="attach-confirm" id="attachConfirm">
+  <div class="attach-confirm-box">
+    <div class="attach-confirm-icon material-icons">check_circle</div>
+    <div class="attach-confirm-title">Member berhasil didaftarkan!</div>
+    <div class="attach-confirm-sub">Do you want to attach this member to the current transaction?</div>
+    <div class="attach-confirm-member">
+      <div class="name" id="confirmMemberName">—</div>
+      <div class="detail" id="confirmMemberDetail">—</div>
+    </div>
+    <div class="attach-btns">
+      <button class="btn-attach-no" id="attachNoBtn">Tidak, simpan saja</button>
+      <button class="btn-attach-yes" id="attachYesBtn">
+        <span class="material-icons">link</span>Yes, attach to transaction
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast notification -->
+<div class="toast" id="toast">
+  <span class="material-icons">check_circle</span>
+  <span id="toastMsg">—</span>
+</div>
+
+<!-- ═══ POPUP TEMPLATES (inline — no fetch) ═══ -->
+<dialog id="memberLookupDialog" style="width:min(98vw,640px);padding:0;border:none;border-radius:12px;box-shadow:0 10px 25px -5px rgba(0,0,0,0.1),0 8px 10px -6px rgba(0,0,0,0.1);">
+  <div id="memberLookupDialogContent"></div>
+</dialog>
+
+<template id="memberLookupTpl">
+  <div class="qr-dialog-header">
+    <div>
+      <div class="qr-dialog-title"><span class="material-icons">badge</span>Member Lookup</div>
+      <div class="qr-dialog-subtitle">Search member by ID, Name, or Phone</div>
+    </div>
+    <button data-close style="background:none;border:none;cursor:pointer;color:#94A3B8;padding:4px;border-radius:6px;display:flex;"><span class="material-icons" style="font-size:20px;">close</span></button>
+  </div>
+
+  <div style="padding:18px 22px 0;">
+    <div class="lk-grid" style="grid-template-columns:1fr 1fr;">
+      <div class="lk-field"><label>Member Name</label><input class="qr-input" data-mf="name" placeholder="Name..." autofocus/></div>
+      <div class="lk-field"><label>Phone Number</label><input class="qr-input" data-mf="phone" placeholder="Phone..."/></div>
+    </div>
+    <div style="display:flex;justify-content:flex-end;margin-top:16px;">
+      <button class="btn-qr-save" id="lkMemberSearchBtn" style="gap:6px;padding:8px 14px;border-radius:6px;display:flex;align-items:center;"><span class="material-icons" style="font-size:16px;">search</span> Search</button>
+    </div>
+  </div>
+
+  <div style="padding:0 22px 22px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin:24px 0 10px;">
+      <span style="font-size:13px;font-weight:600;color:#1E293B;">Search Results</span>
+      <span style="font-size:12px;color:#64748B;" id="lkMemberResultCount">0 member</span>
+    </div>
+    <div class="lk-table-wrapper">
+      <table class="lk-table">
+        <thead>
+          <tr>
+            <th>Member ID</th>
+            <th>Name</th>
+            <th>Phone</th>
+            <th class="right" style="width:100px;">Action</th>
+          </tr>
+        </thead>
+        <tbody id="memberLookupRows"></tbody>
+      </table>
+    </div>
+  </div>
+</template>
+<template id="lookupTpl">
+  <div class="qr-dialog-header">
+    <div>
+      <div class="qr-dialog-title"><span class="material-icons">manage_search</span>Item Lookup</div>
+      <div class="qr-dialog-subtitle">Search items by criteria, then add to transaction</div>
+    </div>
+    <button data-close style="background:none;border:none;cursor:pointer;color:#94A3B8;padding:4px;border-radius:6px;display:flex;"><span class="material-icons" style="font-size:20px;">close</span></button>
+  </div>
+
+  <div style="padding:18px 22px 0;">
+    <!-- Primary criteria -->
+    <div class="lk-grid">
+      <div class="lk-field"><label>Item Code</label><input class="qr-input" data-f="code" placeholder="Masukkan Item Code" autofocus/></div>
+      <div class="lk-field"><label>Item Description</label><input class="qr-input" data-f="desc" placeholder="Masukkan deskripsi"/></div>
+      <div class="lk-field"><label>Barcode</label><input class="qr-input" data-f="barcode" placeholder="Scan / ketik barcode"/></div>
+      <div class="lk-field"><label>Color</label><input class="qr-input" data-f="color" placeholder="Masukkan warna"/></div>
+      <div class="lk-field"><label>Size</label><input class="qr-input" data-f="size" placeholder="Masukkan ukuran"/></div>
+    </div>
+
+    <!-- Advanced toggle -->
+    <button id="lkAdvToggle" type="button" class="lk-adv-toggle">
+      Advanced Searching <span class="material-icons">expand_more</span>
+    </button>
+
+    <!-- Advanced criteria -->
+    <div id="lkAdvanced" style="display:none;">
+      <div class="lk-adv-cols">
+        <div class="lk-group">
+          <div class="lk-group-title">Merchandise Category</div>
+          <div class="lk-row"><label>Brand Portfolio</label><input class="qr-input" data-f="brandPortfolio"/></div>
+          <div class="lk-row"><label>Brand</label><input class="qr-input" data-f="brand"/></div>
+          <div class="lk-row"><label>Category</label><input class="qr-input" data-f="cat"/></div>
+          <div class="lk-row"><label>Subcategory</label><input class="qr-input" data-f="sub"/></div>
+          <div class="lk-row"><label>Class</label><input class="qr-input" data-f="cls"/></div>
+          <div class="lk-row"><label>Subclass</label><input class="qr-input" data-f="subcls"/></div>
+          <div class="lk-row"><label>Flag</label><input class="qr-input" data-f="flag"/></div>
+        </div>
+        <div class="lk-group">
+          <div class="lk-group-title">Characteristic</div>
+          <div class="lk-row"><label>Gender</label><input class="qr-input" data-f="gender"/></div>
+          <div class="lk-row"><label>Year Season</label><input class="qr-input" data-f="season"/></div>
+          <div class="lk-row"><label>Vendor Product Category</label><input class="qr-input" data-f="vpc"/></div>
+          <div class="lk-row"><label>Product Group</label><input class="qr-input" data-f="group"/></div>
+          <div class="lk-row"><label>Activity</label><input class="qr-input" data-f="activity"/></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Action bar -->
+    <div class="lk-actionbar">
+      <div class="lk-displaytop">
+        Display top
+        <input id="lkDisplayTop" class="qr-input" type="number" value="100" min="1" style="width:64px;padding:6px 8px;text-align:center;"/>
+        item(s)
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn-qr-cancel" data-close>Close</button>
+        <button class="btn-qr-save" id="lkSearchBtn"><span class="material-icons">search</span>Search</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Result -->
+  <div class="lk-result">
+    <div class="lk-result-head">
+      <span>Result</span>
+      <span id="lkResultCount" style="font-size:11px;color:#94A3B8;font-weight:500;">—</span>
+    </div>
+    <div style="overflow:auto;max-height:36vh;">
+      <table class="lk-table">
+        <thead>
+          <tr>
+            <th>Barcode</th><th>Item Code</th><th>Color</th><th>Item Description</th>
+            <th>Category</th><th>Sub Category</th><th class="right">Price</th><th class="right">Qty</th><th></th>
+          </tr>
+        </thead>
+        <tbody id="lookupRows"></tbody>
+      </table>
+    </div>
+  </div>
+</template>
+
+<template id="discountTpl">
+  <div class="qr-dialog-header">
+    <div>
+      <div class="qr-dialog-title"><span class="material-icons">sell</span>Apply Discount</div>
+      <div class="qr-dialog-subtitle">Apply discount to current transaction</div>
+    </div>
+    <button data-close style="background:none;border:none;cursor:pointer;color:#94A3B8;padding:4px;border-radius:6px;display:flex;"><span class="material-icons" style="font-size:20px;">close</span></button>
+  </div>
+  <div class="qr-dialog-body">
+    <div class="qr-field">
+      <label>Current Amount</label>
+      <input class="qr-input" id="discCurrent" type="text" value="Rp 0" disabled style="background:#F1F5F9;color:#475569;"/>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+      <div class="qr-field">
+        <label>Diskon Persen (%)</label>
+        <input class="qr-input" id="discPercent" type="number" placeholder="mis. 10"/>
+      </div>
+      <div class="qr-field">
+        <label>Diskon Nominal (Rp)</label>
+        <input class="qr-input" id="discAmount" type="number" placeholder="mis. 15000"/>
+      </div>
+    </div>
+    <div class="qr-field">
+      <label>Net Amount</label>
+      <input class="qr-input" id="discNet" type="text" value="Rp 0" disabled style="background:#F0FDF4;color:#15803D;font-weight:700;border-color:#BBF7D0;"/>
+    </div>
+    <div class="qr-field">
+      <label>Catatan</label>
+      <input class="qr-input" id="discRemark" type="text" placeholder="Alasan diskon (opsional)"/>
+    </div>
+  </div>
+  <div class="qr-dialog-footer">
+    <button class="btn-qr-cancel" data-close>Cancel</button>
+    <button class="btn-qr-save" data-close><span class="material-icons">check</span>Apply Discount</button>
+  </div>
+</template>
+
+<template id="holdTpl">
+  <div class="qr-dialog-header">
+    <div>
+      <div class="qr-dialog-title"><span class="material-icons">pause_circle</span>Hold Transaction</div>
+      <div class="qr-dialog-subtitle">Hold or recall pending transactions</div>
+    </div>
+    <button data-close style="background:none;border:none;cursor:pointer;color:#94A3B8;padding:4px;border-radius:6px;display:flex;"><span class="material-icons" style="font-size:20px;">close</span></button>
+  </div>
+  <div class="qr-dialog-body">
+    <div class="qr-field">
+      <label>Hold Number</label>
+      <input class="qr-input" id="holdNumber" type="text" value="H-00126"/>
+    </div>
+    <div>
+      <label style="display:block;font-size:11.5px;font-weight:600;color:#475569;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.04em;">Pending Transactions</label><div id="holdListArea" style="border:1px solid #E2E8F0;border-radius:8px;overflow:hidden;max-height:180px;overflow-y:auto;"></div></div></div><div class="qr-dialog-footer">
+    <button class="btn-qr-cancel" data-close>Close</button>
+    <button class="btn-qr-save" id="btnHoldCurrent"><span class="material-icons">pause</span>Hold Current Sale</button>
+  </div>
+</template>
+
+<template id="depositTpl">
+    <div class="qr-dialog-header">
+      <div>
+        <div class="qr-dialog-title">Top-up Deposit</div>
+      </div>
+      <button data-close style="background:none;border:none;cursor:pointer;color:#94A3B8;padding:4px;border-radius:6px;display:flex;"><span class="material-icons" style="font-size:20px;">close</span></button>
+    </div>
+    <div class="qr-dialog-body">
+      <div class="qr-field">
+        <label>Nominal Deposit (Rp)</label>
+        <input class="qr-input" id="depAmount" type="number" placeholder="Rp"/>
+      </div>
+      <div class="qr-field">
+        <label>Catatan</label>
+        <input class="qr-input" id="depNote" type="text" placeholder="Opsional"/>
+      </div>
+      <div style="display:flex;gap:12px;margin-top:20px;">
+        <button id="btnProsesDeposit" style="flex:1; background: linear-gradient(135deg, #3B82F6, #2563EB); color:#fff; border:none; padding:12px 16px; border-radius:8px; font-weight:600; font-size:14px; cursor:pointer; box-shadow: 0 4px 10px rgba(37, 99, 235, 0.25); transition: all 0.2s ease;">Pay</button>
+        <button data-close style="flex:1; background-color:#F1F5F9; color:#475569; border:1px solid #E2E8F0; padding:12px 16px; border-radius:8px; font-weight:600; font-size:14px; cursor:pointer; transition: all 0.2s ease;" onmouseover="this.style.backgroundColor='#E2E8F0'" onmouseout="this.style.backgroundColor='#F1F5F9'">Cancel</button>
+      </div>
+    </div>
+  </template>
+
+  <template id="returTpl">
+  <div class="qr-dialog-header">
+    <div>
+      <div class="qr-dialog-title">Process Return</div>
+    </div>
+    <button data-close style="background:none;border:none;cursor:pointer;color:#94A3B8;padding:4px;border-radius:6px;display:flex;"><span class="material-icons" style="font-size:20px;">close</span></button>
+  </div>
+  <div class="qr-dialog-body">
+    <div class="qr-field">
+      <label>Original Transaction No.</label>
+      <div style="display:flex;gap:8px;">
+        <input class="qr-input" type="text" id="returTrxInp" style="flex:1;" placeholder="SALES001" />
+        <button type="button" id="btnSearchTrx" class="btn-primary" style="padding:0 12px;display:flex;align-items:center;gap:4px;border:none;border-radius:6px;"><span class="material-icons" style="font-size:16px;">search</span> Search</button>
+      </div>
+    </div>
+    <div style="border:1px solid #E2E8F0;border-radius:8px;overflow-x:auto;overflow-y:hidden;">
+      <table class="lk-table">
+        <thead style="background:#F8FAFC;">
+          <tr>
+            <th><input type="checkbox"/></th>
+            <th>Product Code</th>
+            <th>Name</th>
+            <th>Qty Beli</th>
+            <th>Qty Retur</th>
+            <th style="width:130px;">Alasan</th>
+          </tr>
+        </thead>
+        <tbody id="returTbody">
+          <!-- Dynamically populated after search -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="qr-dialog-footer">
+    <button class="btn-qr-cancel" data-close>Cancel</button>
+    <button class="btn-qr-save" id="btnProsesRetur"><span class="material-icons">check</span>Process Return</button>
+  </div>
+</template>
+
+<!-- ═══ SCRIPTS ═══ -->
+<script>
+  /* ── Rupiah helpers ── */
+  const parseRp = s => parseInt(String(s).replace(/[^\d]/g, ''), 10) || 0;
+  const fmtRp   = n => 'Rp ' + Math.round(n).toLocaleString('id-ID');
+  const TAX_RATE = 0.10;
+
+  /* ── QTY STEPPER (with live recalc) ── */
+  
+
+  /* ── LIVE RECALC ── total = (unit price − unit discount) × qty ── */
+  const promoState = { shirtBundle: false, buy2get1: false, footwear: false };
+  let promoDiscount = { shirtBundle: 0, buy2get1: 0, footwear: 0 };
+
+  function evaluatePromos(subtotal) {
+    const rows = [...document.querySelectorAll('#txnBody tr')];
+    let apparelItems = [];
+    let footwearItems = [];
+    let shirtItems = [];
+    let sweaterItemsCount = 0;
+    rows.forEach(tr => {
+      const name = tr.querySelector('.name-cell').textContent.toLowerCase();
+      const sub = (tr.dataset.sub || '').toLowerCase();
+      const price = parseRp(tr.querySelector('.price-cell').textContent);
+      const qty = parseInt(tr.querySelector('.qty-value').textContent, 10) || 0;
+      
+      if (name.includes('shirt') || name.includes('trouser') || name.includes('jacket') || name.includes('sweater') || name.includes('apparel')) {
+        for(let i=0; i<qty; i++) apparelItems.push({tr, price, name});
+      }
+      if (name.includes('shirt')) {
+        for(let i=0; i<qty; i++) shirtItems.push({tr, price, name});
+      }
+      if (name.includes('boot') || name.includes('shoe')) {
+        footwearItems.push(true);
+      }
+      if (name.includes('sweater') || sub.includes('sweater')) {
+        sweaterItemsCount += qty;
+      }
+    });
+
+    const isBuy2Get1Eligible = apparelItems.length >= 2;
+    
+    // Check >= 2 sweaters
+    const isPromoBEligible = sweaterItemsCount >= 2;
+
+    const isShirtEligible = shirtItems.length >= 2;
+
+    const btnA = document.getElementById('btnPromoA');
+    const badgeA = document.getElementById('badgePromoA');
+    const dotA = document.getElementById('dotPromoA');
+    if (isShirtEligible) {
+      if (!promoState.shirtBundle) {
+        btnA.disabled = false; btnA.style.opacity = '1'; btnA.style.cursor = 'pointer';
+      }
+      badgeA.className = 'badge-eligible yes'; badgeA.textContent = 'Eligible';
+      dotA.className = 'promo-dot eligible';
+    } else {
+      if (promoState.shirtBundle) togglePromoA(); // force remove
+      btnA.disabled = true; btnA.style.opacity = '0.4'; btnA.style.cursor = 'not-allowed';
+      badgeA.className = 'badge-eligible no'; badgeA.textContent = 'Not Eligible';
+      dotA.className = 'promo-dot not-eligible';
+    }
+
+    const btnB = document.getElementById('btnPromoB');
+    const badgeB = document.getElementById('badgePromoB');
+    const dotB = document.getElementById('dotPromoB');
+    if (isPromoBEligible) {
+      if (!promoState.buy2get1) {
+        btnB.disabled = false; btnB.style.opacity = '1'; btnB.style.cursor = 'pointer';
+      }
+      badgeB.className = 'badge-eligible yes'; badgeB.textContent = 'Eligible';
+      dotB.className = 'promo-dot eligible';
+    } else {
+      if (promoState.buy2get1) togglePromoB(); // force remove
+      btnB.disabled = true; btnB.style.opacity = '0.4'; btnB.style.cursor = 'not-allowed';
+      badgeB.className = 'badge-eligible no'; badgeB.textContent = 'Not Eligible';
+      dotB.className = 'promo-dot not-eligible';
+    }
+
+    const isMemberAttached = document.getElementById('memberZoneAttached').style.display !== 'none';
+    const isFootwearEligible = isMemberAttached && footwearItems.length > 0;
+    const btnC = document.getElementById('btnPromoC');
+    const badgeC = document.getElementById('badgePromoC');
+    const dotC = document.getElementById('dotPromoC');
+    if (isFootwearEligible) {
+      if (!promoState.footwear) {
+        btnC.disabled = false; btnC.style.opacity = '1'; btnC.style.cursor = 'pointer';
+      }
+      badgeC.className = 'badge-eligible yes'; badgeC.textContent = 'Eligible';
+      dotC.className = 'promo-dot eligible';
+    } else {
+      if (promoState.footwear) togglePromoC(); // force remove
+      btnC.disabled = true; btnC.style.opacity = '0.4'; btnC.style.cursor = 'not-allowed';
+      badgeC.className = 'badge-eligible no'; badgeC.textContent = 'Not Eligible';
+      dotC.className = 'promo-dot not-eligible';
+    }
+
+    promoDiscount.shirtBundle = 0;
+    
+    // reset row discounts first
+    rows.forEach(tr => {
+        const manDiscPerUnit = parseFloat(tr.dataset.manualDiscPerUnit) || 0;
+        const currentQty = parseInt(tr.querySelector('.qty-value').textContent, 10) || 1;
+        const manDisc = manDiscPerUnit * currentQty;
+        tr.querySelector('.discount-cell').textContent = `- ${fmtRp(manDisc)}`;
+    });
+    
+    if (promoState.shirtBundle && isShirtEligible) {
+      let shirtSubtotal = shirtItems.reduce((sum, item) => sum + item.price, 0);
+      promoDiscount.shirtBundle = shirtSubtotal * 0.10;
+      
+      let processedTrs = new Set();
+      shirtItems.forEach(item => {
+         if(processedTrs.has(item.tr)) return;
+         processedTrs.add(item.tr);
+         const manDiscPerUnit = parseFloat(item.tr.dataset.manualDiscPerUnit) || 0;
+         const currentQty = parseInt(item.tr.querySelector('.qty-value').textContent, 10) || 1;
+         const manDisc = manDiscPerUnit * currentQty;
+         
+         const promoDisc = item.price * currentQty * 0.10;
+         item.tr.querySelector('.discount-cell').textContent = `- ${fmtRp(manDisc + promoDisc)}`;
+      });
+    }
+
+    promoDiscount.buy2get1 = 0;
+    if (promoState.buy2get1 && isPromoBEligible) {
+      rows.forEach(tr => {
+         if (tr.dataset.isFreeScarf === 'true') {
+             const price = parseRp(tr.querySelector('.price-cell').textContent);
+             const manDiscPerUnit = parseFloat(tr.dataset.manualDiscPerUnit) || 0;
+             const currentQty = parseInt(tr.querySelector('.qty-value').textContent, 10) || 1;
+             const manDisc = manDiscPerUnit * currentQty;
+             
+             const promoDisc = price * currentQty; 
+             tr.querySelector('.discount-cell').textContent = `- ${fmtRp(manDisc + promoDisc)}`;
+         }
+      });
+    }
+
+    promoDiscount.footwear = promoState.footwear ? 50000 : 0;
+    return promoDiscount.footwear;
+  }
+
+  
+    document.addEventListener('click', function(e) {
+      const minus = e.target.closest('.qty-minus');
+      const plus = e.target.closest('.qty-plus');
+      const tr = e.target.closest('tr');
+      if ((minus || plus) && tr && tr.dataset.isFreeScarf === 'true') {
+        showToast('Quantity barang bonus gratis tidak dapat diubah', 3000, 'error_outline');
+        return;
+      }
+      if (minus && tr) {
+        const span = tr.querySelector('.qty-value');
+        let val = parseInt(span.textContent, 10);
+        if (val > 1) {
+          span.textContent = val - 1;
+          recalc();
+        }
+      }
+      if (plus && tr) {
+        const span = tr.querySelector('.qty-value');
+        let val = parseInt(span.textContent, 10);
+        span.textContent = val + 1;
+        recalc();
+      }
+    });
+
+    function recalc() {
+    let subtotal = 0, itemDiscount = 0, itemCount = 0;
+    document.querySelectorAll('#txnBody tr').forEach(tr => {
+      const price = parseRp(tr.querySelector('.price-cell').textContent);
+      const qty   = parseInt(tr.querySelector('.qty-value').textContent, 10) || 0;
+      subtotal += price * qty;
+      itemCount += qty;
+    });
+
+    const globalDiscount = evaluatePromos(subtotal);
+
+    document.querySelectorAll('#txnBody tr').forEach(tr => {
+      const price = parseRp(tr.querySelector('.price-cell').textContent);
+      const disc  = parseRp(tr.querySelector('.discount-cell').textContent);
+      const qty   = parseInt(tr.querySelector('.qty-value').textContent, 10) || 0;
+      // Discount is per item total discount
+      const lineTotal = (price * qty) - disc; 
+      tr.querySelector('.total-cell').textContent = fmtRp(lineTotal);
+      itemDiscount += disc;
+    });
+
+    const totalDiscount = itemDiscount + globalDiscount;
+    const taxable = subtotal - totalDiscount;
+    const net = taxable; // exclude tax
+    
+    document.getElementById('sumSubtotal').textContent = fmtRp(subtotal);
+    document.getElementById('sumDiscount').textContent = '- ' + fmtRp(totalDiscount);
+    // tax element is removed from UI but tax variable can be kept if needed
+    document.getElementById('sumNet').textContent      = fmtRp(net);
+    document.getElementById('totalBig').textContent    = fmtRp(net);
+    document.getElementById('itemCount').textContent   = itemCount;
+  }
+  
+  function togglePromoA() {
+    promoState.shirtBundle = !promoState.shirtBundle;
+    const btn = document.getElementById('btnPromoA');
+    if (promoState.shirtBundle) {
+      btn.textContent = 'Remove'; btn.classList.add('applied');
+      document.getElementById('badgePromoA').textContent = 'Applied ✓';
+      showToast("Shirt Bundle 10% Off applied!");
+    } else {
+      btn.textContent = 'Select'; btn.classList.remove('applied');
+      document.getElementById('badgePromoA').textContent = 'Eligible';
+    }
+    recalc();
+  }
+
+  let freeScarfAddedItem = null; // store reference to added free item TR
+
+  function togglePromoB() {
+    const btn = document.getElementById('btnPromoB');
+    if (promoState.buy2get1) {
+      // Removing promo
+      promoState.buy2get1 = false;
+      btn.textContent = 'Select'; btn.classList.remove('applied');
+      document.getElementById('badgePromoB').textContent = 'Eligible';
+      if (freeScarfAddedItem) {
+        freeScarfAddedItem.remove(); // remove from table
+        freeScarfAddedItem = null;
+      }
+      recalc();
+    } else {
+      // Show Free Item Dialog
+      openTemplateDialog('promoScarfDialog', 'promoScarfDialogContent', 'promoScarfTpl', (host, dlg) => {
+         const codeInp = host.querySelector('#scarfCodeInp');
+         const descInp = host.querySelector('#scarfDescInp');
+         const qtyInp = host.querySelector('#scarfQtyInp');
+         const lookupBtn = host.querySelector('#scarfLookupBtn');
+         const applyBtn = host.querySelector('#scarfApplyBtn');
+         const errorMsg = host.querySelector('#scarfErrorMsg');
+         
+         let fetchedScarf = null;
+         
+         lookupBtn.addEventListener('click', () => {
+             errorMsg.style.display = 'none';
+             window.showItemLookup((code, name, price, sub) => {
+                 if (!name.toLowerCase().includes('scarf') && !(sub && sub.toLowerCase().includes('scarf'))) {
+                     errorMsg.textContent = 'Item selected is NOT a Scarf!';
+                     errorMsg.style.display = 'block';
+                     fetchedScarf = null;
+                     descInp.value = '';
+                     codeInp.value = '';
+                 } else {
+                     errorMsg.style.display = 'none';
+                     fetchedScarf = { code, name, price };
+                     codeInp.value = code;
+                     descInp.value = name;
+                 }
+             });
+         });
+         
+         applyBtn.addEventListener('click', () => {
+             if (!fetchedScarf) {
+                 errorMsg.textContent = 'Please lookup a valid scarf first!';
+                 errorMsg.style.display = 'block';
+                 return;
+             }
+             if (qtyInp.value != '1') {
+                 errorMsg.textContent = 'Qty must be 1 for the free item!';
+                 errorMsg.style.display = 'block';
+                 return;
+             }
+             
+             // Add item
+             addItemRow(fetchedScarf.code, fetchedScarf.name, fetchedScarf.price);
+             // Find the newly added row
+             const rows = document.querySelectorAll('#txnBody tr');
+             freeScarfAddedItem = rows[rows.length - 1]; 
+             // mark it as free scarf promo
+             freeScarfAddedItem.dataset.isFreeScarf = 'true';
+             
+             promoState.buy2get1 = true;
+             btn.textContent = 'Remove'; btn.classList.add('applied');
+             document.getElementById('badgePromoB').textContent = 'Applied \\u2713';
+             showToast("Sweater Bundle Free Scarf applied!");
+             dlg.close();
+             recalc();
+         });
+      });
+    }
+  }
+
+  function togglePromoC() {
+    promoState.footwear = !promoState.footwear;
+    const btn = document.getElementById('btnPromoC');
+    if (promoState.footwear) {
+      btn.textContent = 'Remove'; btn.classList.add('applied');
+      document.getElementById('badgePromoC').textContent = 'Applied ✓';
+      showToast("Member Footwear Deal: Hemat Rp 50.000");
+    } else {
+      btn.textContent = 'Select'; btn.classList.remove('applied');
+      document.getElementById('badgePromoC').textContent = 'Eligible';
+    }
+    recalc();
+  }
+
+  // Bind promo toggles
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('btnPromoA')?.addEventListener('click', togglePromoA);
+    document.getElementById('btnPromoB')?.addEventListener('click', togglePromoB);
+    document.getElementById('btnPromoC')?.addEventListener('click', togglePromoC);
+  });
+
+
+  /* ── VOID MODE ── */
+  const voidBtn   = document.getElementById('voidBtn');
+  const voidBadge = document.getElementById('voidBadge');
+  let voidMode = false;
+  voidBtn.addEventListener('click', () => {
+    voidMode = !voidMode;
+    voidBtn.classList.toggle('void-active', voidMode);
+    voidBadge.classList.toggle('show', voidMode);
+    document.querySelectorAll('.void-action').forEach(el => el.style.display = voidMode ? '' : 'none');
+    document.querySelectorAll('.void-col').forEach(el => el.style.display = voidMode ? '' : 'none');
+  });
+  /* ── ROW SELECTION (mark item for discount / delete) ── */
+  let selectedRow = null;
+  function selectRow(tr) {
+    if (selectedRow === tr) { tr.classList.remove('row-selected'); selectedRow = null; return; }
+    if (selectedRow) selectedRow.classList.remove('row-selected');
+    selectedRow = tr;
+    tr.classList.add('row-selected');
+  }
+  document.getElementById('txnBody')?.addEventListener('click', function(e) {
+    if (e.target.closest('button, select, input, .qty-stepper')) return; // ignore controls
+    const tr = e.target.closest('tr');
+    if (tr) selectRow(tr);
+  });
+  function removeRow(tr, label) {
+    if (tr === selectedRow) selectedRow = null;
+    const name = label || (tr.querySelector('.name-cell') ? tr.querySelector('.name-cell').textContent : 'Item');
+    tr.remove();
+    recalc();
+    return name;
+  }
+  // Delete / Backspace removes the highlighted row, F6 proceeds to payment
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'F6') {
+      e.preventDefault();
+      if (!document.querySelector('dialog[open]')) processCheckout();
+      return;
+    }
+    if (e.key !== 'Delete' && e.key !== 'Backspace') return;
+    const tag = (document.activeElement && document.activeElement.tagName) || '';
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+    if (document.querySelector('dialog[open]')) return;
+    if (selectedRow) {
+      e.preventDefault();
+      const name = removeRow(selectedRow);
+      showToast(`${name} removed from transaction`);
+    }
+  });
+
+  document.addEventListener('click', function(e) {
+    if (e.target.closest('.void-btn')) {
+      removeRow(e.target.closest('tr'));
+    }
+  });
+
+  /* ── DIALOG HELPER (inline templates, no fetch) ── */
+  function openTemplateDialog(dialogId, contentId, tplId, after) {
+    const tpl = document.getElementById(tplId);
+    const host = document.getElementById(contentId);
+    host.innerHTML = '';
+    host.appendChild(tpl.content.cloneNode(true));
+    const dlg = document.getElementById(dialogId);
+    host.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', () => dlg.close()));
+    if (after) after(host, dlg);
+    if (typeof paintIcons === 'function') paintIcons(host);
+    dlg.showModal();
+  }
+  // click-outside to close (all dialogs)
+  document.querySelectorAll('dialog').forEach(dlg => {
+    dlg.addEventListener('click', e => {
+      const r = dlg.getBoundingClientRect();
+      if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) dlg.close();
+    });
+  });
+
+  /* ── LOOKUP ── */
+  const catalog = [
+    { barcode:'8990010000017', code:'ST123-AN456', color:'Blue',  desc:'Blue Cotton Shirt',     cat:'Apparel',     sub:'Shirt',   price:189000, qty:42, size:'M',        brand:'UrbanWear', gender:'Male',   season:'SS25', group:'Tops',        activity:'Casual',  flag:'Active' },
+    { barcode:'8990010000024', code:'ST456-AN789', color:'Black', desc:'Black Leather Jacket',  cat:'Apparel',     sub:'Jacket',  price:899000, qty:8,  size:'L',        brand:'Maddox',    gender:'Male',   season:'FW24', group:'Outerwear',   activity:'Formal',  flag:'Active' },
+    { barcode:'8990010000031', code:'ST789-AN012', color:'Red',   desc:'Red Silk Scarf',        cat:'Accessories', sub:'Scarf',   price:149000, qty:60, size:'One Size', brand:'Aurelle',   gender:'Female', season:'SS25', group:'Accessories', activity:'Casual',  flag:'Active' },
+    { barcode:'8990010000048', code:'ST012-AN345', color:'Green', desc:'Green Wool Sweater',    cat:'Apparel',     sub:'Sweater', price:329000, qty:24, size:'S',        brand:'UrbanWear', gender:'Female', season:'FW24', group:'Tops',        activity:'Casual',  flag:'Active' },
+    { barcode:'8990010000055', code:'ST345-AN678', color:'Brown', desc:'Brown Suede Boots',     cat:'Footwear',    sub:'Boots',   price:759000, qty:15, size:'42',       brand:'Maddox',    gender:'Male',   season:'FW24', group:'Footwear',    activity:'Outdoor', flag:'Active' },
+    { barcode:'8990010000062', code:'ST901-AN234', color:'White', desc:'White Linen Trousers',  cat:'Apparel',     sub:'Bottom',  price:279000, qty:33, size:'32',       brand:'Aurelle',   gender:'Male',   season:'SS25', group:'Bottoms',     activity:'Casual',  flag:'Active' },
+    { barcode:'8990010000079', code:'ST567-AN890', color:'Navy',  desc:'Navy Polo Shirt',       cat:'Apparel',     sub:'Shirt',   price:159000, qty:80, size:'L',        brand:'UrbanWear', gender:'Male',   season:'SS25', group:'Tops',        activity:'Sport',   flag:'Active' },
+    { barcode:'8990010000086', code:'ST234-AN567', color:'Beige', desc:'Beige Canvas Tote Bag', cat:'Accessories', sub:'Bag',     price:199000, qty:50, size:'One Size', brand:'Aurelle',   gender:'Unisex', season:'SS25', group:'Accessories', activity:'Casual',  flag:'Active' },
+  ];
+
+    window.showItemLookup = function(callback) {
+    window.lookupCallback = callback;
+    openTemplateDialog('lookupDialog','lookupDialogContent','lookupTpl', (host, dlg) => {
+      const rowsEl  = host.querySelector('#lookupRows');
+      const countEl = host.querySelector('#lkResultCount');
+      const inputs  = [...host.querySelectorAll('[data-f]')];
+      const topEl   = host.querySelector('#lkDisplayTop');
+
+      const matches = item => inputs.every(inp => {
+        const v = inp.value.trim().toLowerCase();
+        if (!v) return true;
+        return String(item[inp.dataset.f] ?? '').toLowerCase().includes(v);
+      });
+
+      const draw = () => {
+        const top = parseInt(topEl.value, 10) || 100;
+        const list = catalog.filter(matches).slice(0, top);
+        countEl.textContent = list.length + ' item';
+        if (!list.length) {
+          rowsEl.innerHTML = '<tr><td colspan="9" class="lk-empty">Tidak ada item yang cocok dengan kriteria.</td></tr>';
+          return;
+        }
+        rowsEl.innerHTML = list.map(p => `
+          <tr>
+            <td style="color:#94A3B8;font-variant-numeric:tabular-nums;">${p.barcode}</td>
+            <td style="font-weight:600;color:#0F172A;">${p.code}</td>
+            <td>${p.color}</td>
+            <td style="color:#0F172A;">${p.desc}</td>
+            <td>${p.cat}</td>
+            <td>${p.sub}</td>
+            <td class="right">${fmtRp(p.price)}</td>
+            <td class="right">${p.qty}</td>
+            <td class="right"><button class="btn-select lk-add" data-code="${p.code}" data-name="${p.desc}" data-price="${p.price}" data-sub="${p.sub}">+ Add</button></td>
+          </tr>`).join('');
+        host.querySelectorAll('.lk-add').forEach(b => b.addEventListener('click', () => {
+          if (typeof window.lookupCallback === "function") {
+              window.lookupCallback(b.dataset.code, b.dataset.name, parseInt(b.dataset.price, 10), b.dataset.sub);
+              window.lookupCallback = null;
+          } else {
+              addItemRow(b.dataset.code, b.dataset.name, parseInt(b.dataset.price, 10), b.dataset.sub);
+              showToast(`${b.dataset.name} added to transaction`);
+          }
+          dlg.close();
+        }));
+      };
+
+      // Advanced searching toggle
+      const advBtn = host.querySelector('#lkAdvToggle');
+      const adv    = host.querySelector('#lkAdvanced');
+      advBtn.addEventListener('click', () => {
+        const open = adv.style.display === 'none';
+        adv.style.display = open ? '' : 'none';
+        advBtn.classList.toggle('open', open);
+      });
+
+      // Search button + live filtering
+      host.querySelector('#lkSearchBtn').addEventListener('click', draw);
+      inputs.forEach(inp => {
+        inp.addEventListener('input', draw);
+        inp.addEventListener('keydown', e => { if (e.key === 'Enter') draw(); });
+      });
+      
+      topEl.addEventListener('input', draw);
+
+      draw(); // initial: show all
+    });
+  };
+
+  document.getElementById('lookupBtn')?.addEventListener('click', () => window.showItemLookup());
+
+  /* add a product row to the transaction table */
+      function addItemRow(code, name, price, sub = '') {
+      const tbody = document.getElementById('txnBody');
+      const tr = document.createElement('tr');
+      tr.dataset.sub = sub;
+      const spgs = ['Andi', 'Budi', 'Cici'];
+      const randSpg = spgs[Math.floor(Math.random() * spgs.length)];
+      tr.innerHTML = `
+        <td class="code-cell">${code}</td>
+        <td class="name-cell">${name}</td>
+        <td>
+          <div class="qty-stepper">
+            <button class="qty-btn qty-minus">−</button>
+            <span class="qty-val qty-value" data-initial="1">1</span>
+            <button class="qty-btn qty-plus">+</button>
+          </div>
+        </td>
+        <td><select class="spg-select"><option selected>Andi</option><option>Budi</option><option>Cici</option></select></td>
+        <td class="right price-cell">${fmtRp(price)}</td>
+        <td class="right discount-cell">- Rp 0</td>
+        <td class="right total-cell">${fmtRp(price)}</td>
+        <td class="void-action" style="display:${voidMode ? '' : 'none'};"><button class="void-btn" style="background:none;border:none;cursor:pointer;color:#DC2626;padding:4px;"><span class="material-icons" style="font-size:17px;">delete</span></button></td>`;
+      tbody.appendChild(tr);
+      recalc();
+    }
+
+  /* ── DISCOUNT ── */
+  document.getElementById('discountBtn')?.addEventListener('click', () => {
+    if (!selectedRow) {
+      showToast('Select an item from the table first to apply item discount', 3000);
+      return;
+    }
+    if (selectedRow.dataset.isFreeScarf === 'true') {
+      showToast('Barang bonus gratis tidak dapat diberikan diskon manual', 3000, 'error_outline');
+      return;
+    }
+    const priceText = selectedRow.querySelector('.price-cell').textContent;
+    const qtyText = selectedRow.querySelector('.qty-value').textContent;
+    const price = parseRp(priceText);
+    const qty = parseInt(qtyText) || 1;
+    const unitPrice = price; // discount is calculated per unit
+    
+    openTemplateDialog('discountDialog','discountDialogContent','discountTpl', (host) => {
+      const cur = host.querySelector('#discCurrent');
+      const net = host.querySelector('#discNet');
+      const pct = host.querySelector('#discPercent');
+      const amt = host.querySelector('#discAmount');
+      
+      cur.value = fmtRp(unitPrice);
+      net.value = fmtRp(unitPrice);
+      
+      const update = () => {
+          const a = parseRp(amt.value) || 0;
+          net.value = fmtRp(Math.max(0, unitPrice - a));
+      };
+      
+      pct.addEventListener('input', () => {
+          const val = parseFloat(pct.value) || 0;
+          const a = (val / 100) * unitPrice;
+          amt.value = Math.round(a);
+          update();
+      });
+      amt.addEventListener('input', () => {
+          const val = parseFloat(amt.value) || 0;
+          const p = (val / unitPrice) * 100;
+          pct.value = parseFloat(p.toFixed(2));
+          update();
+      });
+
+      host.querySelector('.btn-qr-save').addEventListener('click', () => {
+          const discountPerUnit = parseRp(amt.value) || 0;
+          selectedRow.dataset.manualDiscPerUnit = discountPerUnit;
+          recalc();
+          document.getElementById('discountDialog').close();
+          showToast('Diskon berhasil diterapkan pada item');
+      });
+    });
+  });
+
+  /* ── HOLD ── */
+  document.getElementById('holdBtn')?.addEventListener('click', () => {
+    openTemplateDialog('holdDialog','holdDialogContent','holdTpl', (host) => {
+        const area = host.querySelector('#holdListArea');
+        if (!holdsData || holdsData.length === 0) {
+            area.innerHTML = '<div style="padding:15px;text-align:center;color:#94A3B8;font-size:12px;">No pending transactions</div>';
+        } else {
+            area.innerHTML = holdsData.map(h => `
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid #F1F5F9;">
+                <div>
+                  <div style="font-size:13px;font-weight:600;color:#0F172A;">${h.id}</div>
+                  <div style="font-size:11px;color:#94A3B8;">${h.items.length} item • Rp ${parseInt(h.total_amount).toLocaleString('id-ID')}</div>
+                </div>
+                <button class="btn-select" onclick="recallHold('${h.id}')">Recall</button>
+              </div>
+            `).join('');
+        }
+        
+        host.querySelector('#btnHoldCurrent').addEventListener('click', () => {
+            const rows = document.querySelectorAll('#txnBody tr');
+            if (rows.length === 0) {
+                showToast('Keranjang belanja kosong', 'error_outline');
+                return;
+            }
+            let items = [];
+            rows.forEach(tr => {
+              const code = tr.querySelector('.code-cell').textContent;
+              const name = tr.querySelector('.name-cell').textContent;
+              const price = parseRp(tr.querySelector('.price-cell').textContent);
+              const qty = parseInt(tr.querySelector('.qty-value').textContent, 10) || 0;
+              const spg = tr.querySelector('.spg-select') ? tr.querySelector('.spg-select').value : '';
+              const disc = parseRp(tr.querySelector('.discount-cell').textContent);
+              items.push({ code, name, price, qty, spg, discount: disc });
+            });
+            const memberAttached = document.getElementById('memberZoneAttached').style.display !== 'none';
+            
+            const holdId = 'H-' + Math.floor(10000 + Math.random() * 90000);
+            let totalAmt = 0;
+            items.forEach(i => totalAmt += ((i.price - i.discount) * i.qty));
+            
+            const newHold = {
+              id: holdId,
+              member_id: memberAttached ? 'M00123' : null,
+              member_name: memberAttached ? document.getElementById('attachedMemberName').textContent : null,
+              total_amount: totalAmt,
+              items: items
+            };
+            
+            let currentHolds = [];
+            try { currentHolds = JSON.parse(localStorage.getItem('saved_holds')) || []; } catch(e){}
+            currentHolds.unshift(newHold);
+            localStorage.setItem('saved_holds', JSON.stringify(currentHolds));
+            holdsData = currentHolds; // update local var
+            
+            // Clear cart
+            document.getElementById('txnBody').innerHTML = '';
+              document.getElementById('memberClearBtn').click();
+              recalc();
+              
+              const dlg = document.getElementById('holdDialog');
+              if(dlg && dlg.hasAttribute('open')) dlg.close();
+              showToast('Transaction successfully put on hold (' + holdId + ')', 'pause_circle');
+          });
+    });
+  });
+  
+  function recallHold(holdId) {
+      let currentHolds = [];
+      try { currentHolds = JSON.parse(localStorage.getItem('saved_holds')) || []; } catch(e){}
+      const holdIndex = currentHolds.findIndex(h => h.id === holdId);
+      if (holdIndex === -1) return;
+      
+      const holdItem = currentHolds[holdIndex];
+      const isVoidMode = document.getElementById('voidBadge')?.textContent === 'ON';
+      
+      // Populate Cart
+      const tbody = document.getElementById('txnBody');
+      tbody.innerHTML = '';
+      holdItem.items.forEach(item => {
+          const unitPrice = item.price; // actually it's unit_price mapped to price
+          const disc = item.discount || 0;
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td class="code-cell">${item.code || item.article_code}</td>
+            <td class="name-cell">${item.name || item.article_code}</td>
+            <td>
+              <div class="qty-stepper">
+                <button class="qty-btn qty-minus">-</button>
+                <span class="qty-val qty-value" data-initial="${item.qty}">${item.qty}</span>
+                <button class="qty-btn qty-plus">+</button>
+              </div>
+            </td>
+            <td><select class="spg-select"><option value="">-</option><option value="Andi" ${item.spg==='Andi'?'selected':''}>Andi</option><option value="Budi" ${item.spg==='Budi'?'selected':''}>Budi</option><option value="Cici" ${item.spg==='Cici'?'selected':''}>Cici</option></select></td>
+            <td class="right price-cell">${fmtRp(unitPrice)}</td>
+            <td class="right discount-cell">${disc > 0 ? ('- ' + fmtRp(disc)) : '- Rp 0'}</td>
+            <td class="right total-cell">${fmtRp((unitPrice - disc) * item.qty)}</td>
+            <td class="void-action" style="display:${isVoidMode ? '' : 'none'};"><button class="void-btn" style="background:none;border:none;cursor:pointer;color:#DC2626;padding:4px;"><span class="material-icons" style="font-size:17px;">delete</span></button></td>
+          `;
+          tbody.appendChild(tr);
+          paintIcons(tr);
+      });
+      
+      if (holdItem.member_id) {
+          attachMember({id: "M...", name: holdItem.member_id, phone: ""}); // simplified mock
+      } else {
+          document.getElementById('memberClearBtn')?.click();
+      }
+      
+      // Remove from saved holds
+      currentHolds.splice(holdIndex, 1);
+      localStorage.setItem('saved_holds', JSON.stringify(currentHolds));
+      holdsData = currentHolds;
+      
+      recalc();
+      
+      const dlg = document.getElementById('holdDialog');
+      if(dlg && dlg.hasAttribute('open')) dlg.close();
+      showToast('Transaksi ' + holdId + ' successfully recalled');
+  }
+
+
+  /* ── TOAST ── */
+  function showToast(msg, duration = 2800) {
+    const t = document.getElementById('toast');
+    document.getElementById('toastMsg').textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), duration);
+  }
+
+  /* ── MEMBER ZONE LOGIC ── */
+  let pendingMember = null; // holds newly registered member data before attach decision
+
+  function attachMember(member) {
+    document.getElementById('memberZoneEmpty').style.display    = 'none';
+    document.getElementById('memberZoneAttached').style.display = '';
+    document.getElementById('attachedMemberName').textContent   = member.name;
+    document.getElementById('attachedMemberSub').textContent    = `${member.id} · ${member.phone}`;
+  }
+
+  function detachMember() {
+    document.getElementById('memberZoneEmpty').style.display    = '';
+    document.getElementById('memberZoneAttached').style.display = 'none';
+    document.getElementById('memberSearchInput').value = '';
+  }
+
+  // Clear / detach button
+  document.getElementById('memberClearBtn')?.addEventListener('click', () => {
+    detachMember();
+    showToast('Member removed from this transaction');
+  });
+
+  // Mock member lookup (Enter key or Cari button)
+  const mockMembers = {{ members | safe }};
+
+  // Injected by FastAPI
+  const allArticles = {{ all_articles | safe }};
+  let holdsData = []; try { holdsData = JSON.parse(localStorage.getItem('saved_holds')) || []; } catch(e) {}
+  const initialCartStr = '{{ initial_cart | safe }}';
+  let initialCart = null;
+  if (initialCartStr && initialCartStr !== 'null') {
+      try { initialCart = JSON.parse(initialCartStr); } catch(e){}
+  }
+
+
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('resCloseBtn')?.addEventListener('click', () => {
+      document.getElementById('memberResultPanel').classList.remove('show');
+    });
+
+    document.getElementById('memberHintNewBtn')?.addEventListener('click', () => {
+      document.getElementById('memberNotFoundHint').style.display = 'none';
+      document.getElementById('memberNewBtn').click();
+    });
+    
+    document.getElementById('memberClearBtn')?.addEventListener('click', () => {
+      recalc(); // re-eval promos when member detached
+    });
+  });
+
+  function doMemberLookup() {
+    const q = document.getElementById('memberSearchInput').value.trim().toLowerCase();
+    if (!q) return;
+    const found = mockMembers.find(m =>
+      m.id.toLowerCase() === q ||
+      m.name.toLowerCase().includes(q) ||
+      m.phone.replace(/\D/g,'').includes(q.replace(/\D/g,''))
+    );
+    if (found) {
+      attachMember(found);
+      showToast(`Member found: ${found.name}`);
+    } else {
+      showToast('Member not found. Coba daftarkan sebagai member baru.');
+    }
+  }
+
+  window.showMemberLookup = () => {
+    openTemplateDialog('memberLookupDialog', 'memberLookupDialogContent', 'memberLookupTpl', (host, dlg) => {
+      const rowsEl  = host.querySelector('#memberLookupRows');
+      const countEl = host.querySelector('#lkMemberResultCount');
+      const inputs  = [...host.querySelectorAll('[data-mf]')];
+      
+      const draw = () => {
+        let list = mockMembers;
+        inputs.forEach(inp => {
+          const v = inp.value.trim().toLowerCase();
+          if (v) {
+            list = list.filter(m => String(m[inp.dataset.mf] || '').toLowerCase().includes(v));
+          }
+        });
+        
+        countEl.textContent = list.length + ' member';
+        if (!list.length) {
+          rowsEl.innerHTML = '<tr><td colspan="4" class="lk-empty">Tidak ada member yang cocok.</td></tr>';
+          return;
+        }
+        
+        rowsEl.innerHTML = list.map(m => `
+          <tr>
+            <td style="color:#94A3B8;font-variant-numeric:tabular-nums;">${m.id}</td>
+            <td style="font-weight:600;color:#0F172A;">${m.name}</td>
+            <td>${m.phone}</td>
+            <td class="right"><button class="btn-select lk-member-sel" data-id="${m.id}">Select</button></td>
+          </tr>
+        `).join('');
+        
+        host.querySelectorAll('.lk-member-sel').forEach(b => {
+          b.addEventListener('click', () => {
+            const found = mockMembers.find(x => x.id === b.dataset.id);
+            if (found) {
+              attachMember(found);
+              showToast(`Member selected: ${found.name}`);
+            }
+            dlg.close();
+          });
+        });
+      };
+      
+      host.querySelector('#lkMemberSearchBtn').addEventListener('click', draw);
+      inputs.forEach(inp => {
+        inp.addEventListener('keydown', e => { if (e.key === 'Enter') draw(); });
+      });
+      
+      draw(); // Initial draw
+    });
+  };
+
+  document.getElementById('memberLookupBtnOpen')?.addEventListener('click', () => window.showMemberLookup());
+  document.getElementById('memberLookupBtn')?.addEventListener('click', doMemberLookup);
+  document.getElementById('memberSearchInput')?.addEventListener('keydown', e => {
+    if (e.key === 'Enter') doMemberLookup();
+  });
+
+  /* ── QUICK REGISTER ── */
+  document.getElementById('memberNewBtn')?.addEventListener('click', () => {
+    // Reset form
+    ['qrName','qrPhone','qrDob','qrEmail'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('qrError').style.display = 'none';
+    document.getElementById('quickRegDialog').showModal();
+    setTimeout(() => document.getElementById('qrName').focus(), 80);
+  });
+
+  document.getElementById('qrSaveBtn')?.addEventListener('click', () => {
+    const name  = document.getElementById('qrName').value.trim();
+    const phone = document.getElementById('qrPhone').value.trim();
+    const dob   = document.getElementById('qrDob').value;
+    const email = document.getElementById('qrEmail').value.trim();
+
+    // Validation
+    if (!name || !phone) {
+      const errEl = document.getElementById('qrError');
+      document.getElementById('qrErrorMsg').textContent = !name ? 'Nama lengkap wajib diisi.' : 'No. HP wajib diisi.';
+      errEl.style.display = 'flex';
+      return;
+    }
+
+    // Generate dummy member ID
+    const newId = 'M' + String(Math.floor(Math.random() * 90000) + 10000);
+    pendingMember = { id: newId, name, phone, dob, email };
+
+    // Close quick reg dialog, show attach confirm
+    document.getElementById('quickRegDialog').close();
+    document.getElementById('confirmMemberName').textContent   = name;
+    document.getElementById('confirmMemberDetail').textContent = `${newId} · ${phone}${dob ? ' · ' + dob : ''}`;
+    const overlay = document.getElementById('attachConfirm');
+    overlay.classList.add('show');
+  });
+
+  /* ── ATTACH CONFIRM ACTIONS ── */
+  document.getElementById('attachYesBtn')?.addEventListener('click', () => {
+    document.getElementById('attachConfirm').classList.remove('show');
+    attachMember(pendingMember);
+    showToast(`${pendingMember.name} successfully registered & attached to transaction`);
+    pendingMember = null;
+  });
+
+  document.getElementById('attachNoBtn')?.addEventListener('click', () => {
+    document.getElementById('attachConfirm').classList.remove('show');
+    showToast(`${pendingMember.name} berhasil didaftarkan (tidak di-attach)`);
+    pendingMember = null;
+  });
+
+  /* ── BARCODE INPUT AUTOFOCUS ── */
+  document.addEventListener('keydown', function(e) {
+    const active = document.activeElement;
+    const tag = active ? active.tagName : '';
+    if (tag !== 'INPUT' && tag !== 'TEXTAREA' && tag !== 'SELECT' && !active.closest('dialog[open]')) {
+      document.getElementById('barcodeInput').focus();
+    }
+  });
+
+  /* ── INITIAL CALC ── */
+  recalc();
+
+  /* ── INLINE SVG ICONS (bulletproof — no icon-font dependency) ── */
+  const ICONS = {
+      shopping_cart:'<circle cx=\"9\" cy=\"21\" r=\"1\"/><circle cx=\"20\" cy=\"21\" r=\"1\"/><path d=\"M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6\"/>',
+      print:'<polyline points=\"6 9 6 2 18 2 18 9\"/><path d=\"M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2\"/><rect x=\"6\" y=\"14\" width=\"12\" height=\"8\"/>',
+      account_balance_wallet:'<path d=\"M3 6a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z\"/><path d=\"M16 12a1 1 0 1 0 2 0 1 1 0 0 0-2 0\"/>',
+      assignment_return:'<polyline points=\"9 10 4 15 9 20\"/><path d=\"M20 4v7a4 4 0 0 1-4 4H4\"/>',
+    storefront:'<path d="M3 9.5 4.5 4h15L21 9.5"/><path d="M4 9.5V20h16V9.5"/><path d="M9 20v-6h6v6"/><path d="M4 9.5a2.5 2 0 0 0 5 0 2.5 2 0 0 0 5 0 2.5 2 0 0 0 5 0"/>',
+    store:'<path d="M3 9.5 4.5 4h15L21 9.5"/><path d="M4 9.5V20h16V9.5"/><path d="M9 20v-6h6v6"/><path d="M4 9.5a2.5 2 0 0 0 5 0 2.5 2 0 0 0 5 0 2.5 2 0 0 0 5 0"/>',
+    tag:'<path d="M20.59 13.41 13.42 20.6a2 2 0 0 1-2.83 0L2 12V2h10z"/><circle cx="7" cy="7" r="1.4"/>',
+    calendar_today:'<rect x="3" y="4.5" width="18" height="16" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="8" y1="2.5" x2="8" y2="6"/><line x1="16" y1="2.5" x2="16" y2="6"/>',
+    badge:'<rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><line x1="14" y1="10" x2="18" y2="10"/><line x1="14" y1="14" x2="17" y2="14"/>',
+    search:'<circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>',
+    manage_search:'<circle cx="10" cy="10" r="6"/><line x1="20" y1="20" x2="15" y2="15"/><line x1="7" y1="9" x2="13" y2="9"/><line x1="7" y1="11.5" x2="11" y2="11.5"/>',
+    person_add:'<circle cx="9" cy="8" r="3.2"/><path d="M3.5 20a5.5 5.5 0 0 1 11 0"/><line x1="18" y1="7" x2="18" y2="13"/><line x1="15" y1="10" x2="21" y2="10"/>',
+    verified_user:'<path d="M12 2 4 5v6c0 5 3.4 8.5 8 11 4.6-2.5 8-6 8-11V5z"/><polyline points="9 12 11 14 15.5 9.5"/>',
+    close:'<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>',
+    qr_code_scanner:'<path d="M4 8V5a1 1 0 0 1 1-1h3"/><path d="M16 4h3a1 1 0 0 1 1 1v3"/><path d="M20 16v3a1 1 0 0 1-1 1h-3"/><path d="M8 20H5a1 1 0 0 1-1-1v-3"/><line x1="4" y1="12" x2="20" y2="12"/>',
+    photo_camera:'<path d="M3 8.5A1.5 1.5 0 0 1 4.5 7H7l1.5-2h7L17 7h2.5A1.5 1.5 0 0 1 21 8.5V18a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/><circle cx="12" cy="13" r="3.2"/>',
+    sell:'<path d="M20.59 13.41 13.42 20.6a2 2 0 0 1-2.83 0L2 12V2h10z"/><circle cx="7" cy="7" r="1.4"/>',
+    local_offer:'<path d="M20.59 13.41 13.42 20.6a2 2 0 0 1-2.83 0L2 12V2h10z"/><circle cx="7" cy="7" r="1.4"/>',
+    pause_circle:'<circle cx="12" cy="12" r="9"/><line x1="10" y1="9" x2="10" y2="15"/><line x1="14" y1="9" x2="14" y2="15"/>',
+    pause:'<rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/>',
+    remove_circle_outline:'<circle cx="12" cy="12" r="9"/><line x1="8" y1="12" x2="16" y2="12"/>',
+    delete:'<polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>',
+    payment:'<rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/>',
+    save:'<path d="M5 3h11l3 3v15H5z"/><path d="M8 3v5h7V3"/><rect x="8" y="13" width="8" height="6"/>',
+    check_circle:'<circle cx="12" cy="12" r="9"/><polyline points="8.5 12 11 14.5 16 9"/>',
+    check:'<polyline points="20 6 9 17 4 12"/>',
+    error_outline:'<circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="13"/><line x1="12" y1="16" x2="12" y2="16"/>',
+    link:'<path d="M10 13a5 5 0 0 0 7 0l2-2a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-2 2a5 5 0 0 0 7 7l1-1"/>',
+    receipt_long:'<path d="M5 3v18l2-1 2 1 2-1 2 1 2-1 2 1V3l-2 1-2-1-2 1-2-1-2 1z"/><line x1="8" y1="8" x2="16" y2="8"/><line x1="8" y1="12" x2="16" y2="12"/>',
+    touch_app:'<path d="M10 9V5a2 2 0 0 1 4 0v7"/><path d="M14 11.5a2 2 0 0 1 4 0V16a5 5 0 0 1-5 5h-1.6a5 5 0 0 1-4-2l-2.8-3.7a2 2 0 0 1 2.6-2.9L10 14"/>'
+  };
+  function svgFor(name){
+    const body = ICONS[name] || '<circle cx="12" cy="12" r="9"/>';
+    return '<svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle">'+body+'</svg>';
+  }
+  function paintIcons(root){
+    (root||document).querySelectorAll('.material-icons').forEach(el=>{
+      if(el.dataset.painted) return;
+      const name = el.textContent.trim();
+      el.dataset.painted = '1';
+      el.innerHTML = svgFor(name);
+      el.style.display = 'inline-flex';
+      el.style.alignItems = 'center';
+      el.style.justifyContent = 'center';
+    });
+  }
+  function generateSalesSeq() {
+    let currentSalesSeq = parseInt(localStorage.getItem('sales_seq')) || 1;
+    return `SALES${String(currentSalesSeq).padStart(3, '0')}`;
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const salesBadgeText = document.getElementById('salesBadgeText');
+    if (salesBadgeText) {
+      salesBadgeText.textContent = generateSalesSeq();
+    }
+  });
+
+  paintIcons(document);
+
+  // Deposit & Retur dialog bindings
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('depositBtnTop')?.addEventListener('click', () => {
+      openTemplateDialog('depositDialog','depositDialogContent','depositTpl', (host, dlg) => {
+        host.querySelector('#btnProsesDeposit').addEventListener('click', () => {
+          const amt = parseFloat(host.querySelector('#depAmount').value) || 0;
+          const note = host.querySelector('#depNote').value || '';
+          if (amt <= 0) {
+            showToast('Nominal deposit harus lebih dari 0', 'error_outline');
+            return;
+          }
+          
+          const seq = Math.floor(Math.random() * 900) + 100;
+          const depId = `DEPO-${seq}`;
+          
+          localStorage.setItem('trx_type', 'DEPOSIT');
+          localStorage.setItem('deposit_id', depId);
+          localStorage.setItem('deposit_amount', amt);
+          localStorage.setItem('deposit_note', note);
+          
+          document.getElementById('cartDataInput').value = JSON.stringify({ items: [] });
+          document.getElementById('totalAmountInput').value = amt;
+          document.getElementById('checkoutForm').submit();
+        });
+      });
+    });
+
+    document.getElementById('returBtnTop')?.addEventListener('click', () => {
+      openTemplateDialog('returDialog','returDialogContent','returTpl', (host, dlg) => {
+        const trxInp = host.querySelector('#returTrxInp');
+        const searchBtn = host.querySelector('#btnSearchTrx');
+        const tbody = host.querySelector('#returTbody');
+        
+        const loadMockItems = () => {
+          if (!trxInp.value.trim()) return;
+          tbody.innerHTML = `
+            <tr>
+              <td><input type="checkbox"/></td>
+              <td>ST123-AN456</td>
+              <td>Blue Cotton Shirt</td>
+              <td>2</td>
+              <td><input type="number" style="width:50px;padding:2px;" value="1" max="2" min="1" oninput="if(parseInt(this.value)>parseInt(this.max)) this.value=this.max; if(parseInt(this.value)<parseInt(this.min)) this.value=this.min;"/></td>
+              <td><select style="font-size:11px;padding:2px;width:100%;"><option>Cacat</option><option>Salah Ukuran</option><option>Lainnya</option></select></td>
+            </tr>
+            <tr>
+              <td><input type="checkbox"/></td>
+              <td>ST901-AN234</td>
+              <td>White Linen Trousers</td>
+              <td>1</td>
+              <td><input type="number" style="width:50px;padding:2px;" value="1" max="1" min="1" oninput="if(parseInt(this.value)>parseInt(this.max)) this.value=this.max; if(parseInt(this.value)<parseInt(this.min)) this.value=this.min;"/></td>
+              <td><select style="font-size:11px;padding:2px;width:100%;"><option>Cacat</option><option>Salah Ukuran</option><option>Lainnya</option></select></td>
+            </tr>
+          `;
+        };
+        
+        searchBtn?.addEventListener('click', loadMockItems);
+        trxInp?.addEventListener('keydown', e => { if (e.key === 'Enter') loadMockItems(); });
+
+        host.querySelector('#btnProsesRetur').addEventListener('click', () => {
+          const mainTbody = document.getElementById('txnBody');
+          const rows = tbody.querySelectorAll('tr');
+          let itemsToReturn = [];
+          
+          rows.forEach(tr => {
+            const chk = tr.querySelector('input[type="checkbox"]');
+            if (chk && chk.checked) {
+              const code = tr.cells[1].textContent.trim();
+              const qtyInp = tr.cells[4].querySelector('input[type="number"]');
+              const returQty = qtyInp ? parseInt(qtyInp.value, 10) : 1;
+              itemsToReturn.push({ code, returQty });
+            }
+          });
+
+          if (itemsToReturn.length > 0) {
+            mainTbody.innerHTML = ''; // clear all details
+            itemsToReturn.forEach(itemInfo => {
+              const item = catalog.find(x => x.code === itemInfo.code);
+              if (item) {
+                addItemRow(item.code, item.desc, item.price, item.sub);
+                const newRow = mainTbody.lastElementChild;
+                if (newRow) {
+                  newRow.dataset.isRetur = '1';
+                  const qtyField = newRow.querySelector('.qty-val');
+                  if (qtyField) qtyField.textContent = -itemInfo.returQty;
+                }
+              }
+            });
+            recalc();
+            showToast(`Return successfully processed`);
+            dlg.close();
+          } else {
+            alert('Pilih item yang akan diretur terlebih dahulu.');
+          }
+        });
+      });
+    });
+  });
+
+  // Best Sellers Logic
+  const bestSellersData = [
+    { rank:1, code:'ST345-AN678', name:'Brown Suede Boots', price:759000, sold:42, trend:'↑', badgeColor:'#D97706', badgeBg:'#FEF3C7' },
+    { rank:2, code:'ST012-AN345', name:'Green Wool Sweater', price:329000, sold:38, trend:'↑', badgeColor:'#475569', badgeBg:'#F1F5F9' },
+    { rank:3, code:'ST901-AN234', name:'White Linen Trousers', price:279000, sold:31, trend:'→', badgeColor:'#92400E', badgeBg:'#FFEDD5' },
+    { rank:4, code:'ST123-AN456', name:'Blue Cotton Shirt', price:189000, sold:27, trend:'↓', badgeColor:'#64748B', badgeBg:'#F8FAFC' },
+  ];
+  function paintBestSellers() {
+    const grid = document.getElementById('bestSellerGrid');
+    if (!grid) return;
+    grid.innerHTML = bestSellersData.map(b => `
+      <div class="bestseller-card" onclick="addItemRow('${b.code}', '${b.name}', ${b.price}, '${b.sub || ''}'); showToast('${b.name} added')">
+        <div class="bestseller-rank">#${b.rank}</div>
+        <div class="bestseller-details">
+          <div class="bestseller-name">${b.name}</div>
+          <div class="bestseller-price">${fmtRp(b.price)} • <span style="font-size:10px;color:#94A3B8;">Terjual: ${b.sold}</span></div>
+        </div>
+        <div class="bestseller-add"><span class="material-icons">add</span> Tambah</div>
+      </div>
+    `).join('');
+    if (typeof paintIcons === 'function') paintIcons(grid);
+  }
+  document.addEventListener('DOMContentLoaded', paintBestSellers);
+
+
+  const searchInput = document.getElementById('memberSearchInput');
+  const typeahead = document.getElementById('memberTypeahead');
+  const notFoundHint = document.getElementById('memberNotFoundHint');
+
+  searchInput.addEventListener('input', function() {
+    const q = this.value.trim().toLowerCase();
+    if (!q) {
+      typeahead.style.display = 'none';
+      notFoundHint.style.display = 'none';
+      return;
+    }
+    const cleanQ = q.replace(/\D/g,'');
+    const results = mockMembers.filter(m => m.name.toLowerCase().includes(q) || (cleanQ && m.phone.replace(/\D/g,'').includes(cleanQ))).slice(0, 5);
+    
+    if (results.length > 0) {
+      typeahead.innerHTML = results.map(m => `
+        <div style="padding:8px 12px;font-size:12px;cursor:pointer;border-bottom:1px solid #F1F5F9;" onmouseover="this.style.background='#F8FAFF'" onmouseout="this.style.background='transparent'" onclick="attachMemberObj('${m.id}')">
+          <div style="font-weight:600;color:#0F172A;">${m.name}</div>
+          <div style="color:#64748B;font-size:11px;margin-top:2px;">${m.id} &middot; ${m.phone} &middot; ${m.tier} (${m.points} pts)</div>
+        </div>
+      `).join('');
+      typeahead.style.display = 'block';
+      notFoundHint.style.display = 'none';
+    } else {
+      typeahead.style.display = 'none';
+      notFoundHint.style.display = 'block';
+    }
+  });
+
+  window.attachMemberObj = function(id) {
+    const found = mockMembers.find(m => m.id === id);
+    if (found) {
+      typeahead.style.display = 'none';
+      searchInput.value = '';
+      attachMember(found);
+      recalc();
+    }
+  };
+
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.member-zone') && !e.target.closest('.typeahead-dropdown')) {
+      typeahead.style.display = 'none';
+    }
+  });
+
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('memberHintNewBtn')?.addEventListener('click', () => {
+      document.getElementById('memberNotFoundHint').style.display = 'none';
+      document.getElementById('memberNewBtn').click();
+    });
+    
+    document.getElementById('memberClearBtn')?.addEventListener('click', () => {
+      recalc();
+    });
+  });
+
+  // Action Bar Logic
+  function toggleActionBtns() { /* doing nothing to keep default action bar */ }
+
+  // override selectRow to include toggle
+  const oldSelectRow = selectRow;
+  selectRow = function(tr) {
+    oldSelectRow(tr);
+    toggleActionBtns();
+  };
+
+  document.addEventListener('click', function(e) {
+    if (selectedRow && !e.target.closest('#rowActionBtns') && !e.target.closest('#txnBody') && !e.target.closest('button, dialog')) {
+      selectedRow.classList.remove('row-selected');
+      selectedRow = null;
+      toggleActionBtns();
+    }
+  });
+
+  document.getElementById('btnRowQtyMinus')?.addEventListener('click', () => {
+    if (!selectedRow) return;
+    const span = selectedRow.querySelector('.qty-value');
+    let v = parseInt(span.textContent);
+    if (v > 1) {
+      span.textContent = v - 1;
+      recalc();
+    }
+  });
+  document.getElementById('btnRowQtyPlus')?.addEventListener('click', () => {
+    if (!selectedRow) return;
+    const span = selectedRow.querySelector('.qty-value');
+    let v = parseInt(span.textContent);
+    span.textContent = v + 1;
+    recalc();
+  });
+  document.getElementById('btnRowDelete')?.addEventListener('click', () => {
+    if (!selectedRow) return;
+    const name = removeRow(selectedRow);
+    showToast(`${name} removed from transaction`);
+    toggleActionBtns();
+  });
+  document.getElementById('btnRowSpg')?.addEventListener('click', () => {
+    if (!selectedRow) return;
+    const spgs = ["Andi", "Budi", "Cici"];
+    const span = selectedRow.querySelector('.spg-value');
+    if (!span) return;
+    let idx = spgs.indexOf(span.textContent);
+    idx = (idx + 1) % spgs.length;
+    span.textContent = spgs[idx];
+    showToast(`SPG diubah ke ${spgs[idx]}`);
+  });
+
+
+
+        function processCheckout() {
+      const rows = document.querySelectorAll('#txnBody tr');
+      let items = [];
+      rows.forEach(tr => {
+        const code = tr.querySelector('.code-cell').textContent;
+        const name = tr.querySelector('.name-cell').textContent;
+        const price = parseRp(tr.querySelector('.price-cell').textContent);
+        const qty = parseInt(tr.querySelector('.qty-value').textContent, 10) || 0;
+        const spg = tr.querySelector('.spg-select') ? tr.querySelector('.spg-select').value : '';
+        const disc = parseRp(tr.querySelector('.discount-cell').textContent);
+        items.push({ code, name, price, qty, spg, discount: disc });
+      });
+      
+      const memberAttached = document.getElementById('memberZoneAttached').style.display !== 'none';
+      const memberId = memberAttached ? document.getElementById('attachedMemberName').textContent : null;
+      const totalDiscount = parseRp(document.getElementById('sumDiscount').textContent);
+      
+      const cart = {
+        items: items,
+        member_id: memberAttached ? 'M00123' : null,
+        member_name: memberAttached ? memberId : null,
+        discount: totalDiscount
+      };
+      
+      const totalAmount = parseRp(document.getElementById('sumNet').textContent);
+      
+      const hasRetur = Array.from(rows).some(tr => tr.dataset.isRetur === '1');
+      localStorage.setItem('trx_type', hasRetur ? 'RETUR' : 'SALES');
+      localStorage.setItem('ireap_total', totalAmount);
+
+      document.getElementById('cartDataInput').value = JSON.stringify(cart);
+      document.getElementById('totalAmountInput').value = totalAmount;
+      document.getElementById('checkoutForm').submit();
+    }
+
+
+    // Barcode Scan
+    document.getElementById('barcodeInput')?.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const bc = this.value.trim();
+        if (!bc) return;
+        
+        const item = allArticles.find(a => a.barcode === bc || a.code === bc || a.name.toLowerCase().includes(bc.toLowerCase()));
+        if (item) {
+          addItemRow(item.code, item.name, item.price, item.sub);
+          showToast(item.name + ' added');
+          this.value = '';
+        } else {
+          showToast('Item not found in system', 3000);
+        }
+      }
+    });
+
+
+    if (initialCart && initialCart.items) {
+        initialCart.items.forEach(it => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td style="color:#94A3B8;font-variant-numeric:tabular-nums;">--</td>
+              <td style="font-weight:600;color:#0F172A;" class="code-cell">${it.code}</td>
+              <td>--</td>
+              <td style="color:#0F172A;" class="name-cell">${it.name}</td>
+              <td>
+                <div class="qty-ctrl">
+                  <button class="qty-btn" onclick="chgQty(this,-1)"><span class="material-icons">remove</span></button>
+                  <span class="qty-value">${it.qty}</span>
+                  <button class="qty-btn" onclick="chgQty(this,1)"><span class="material-icons">add</span></button>
+                </div>
+              </td>
+              <td><select class="spg-select"><option>Andi</option><option>Budi</option><option>Cici</option></select></td>
+              <td class="right price-cell">${fmtRp(it.price)}</td>
+              <td class="right discount-cell">${fmtRp(it.discount)}</td>
+              <td class="right total-cell">${fmtRp(it.price * it.qty - it.discount)}</td>
+              <td class="void-action" style="display:none;"><button class="void-btn" style="background:none;border:none;cursor:pointer;color:#DC2626;padding:4px;"><span class="material-icons" style="font-size:17px;">delete</span></button></td>`;
+            if (it.spg) {
+                const sel = tr.querySelector('.spg-select');
+                if(sel) sel.value = it.spg;
+            }
+            document.getElementById('txnBody').appendChild(tr);
+        });
+        if (initialCart.member_id) {
+            const m = mockMembers.find(x => x.id === initialCart.member_id);
+            if (m) attachMember(m);
+        }
+        recalc();
+    }
+
+</script>
+
+        <!-- Form to submit cart data to backend for Payment phase without API -->
+        <form id="checkoutForm" method="POST" action="/payment" style="display:none;">
+          <input type="hidden" name="cart_data" id="cartDataInput">
+          <input type="hidden" name="total_amount" id="totalAmountInput">
+        </form>
+
+
+  <form id="holdForm" method="POST" action="/hold" style="display:none;">
+    <input type="hidden" name="cart_data" id="holdCartDataInput">
+  </form>
+  <form id="unholdForm" method="POST" action="/unhold" style="display:none;">
+    <input type="hidden" name="hold_id" id="unholdIdInput">
+  </form>
+
+
+  <dialog id="promoScarfDialog" style="width:min(98vw,600px);padding:0;border:none;border-radius:12px;box-shadow:0 10px 25px -5px rgba(0,0,0,0.1),0 8px 10px -6px rgba(0,0,0,0.1);">
+    <div id="promoScarfDialogContent"></div>
+  </dialog>
+
+  <template id="promoScarfTpl">
+    <div class="qr-dialog-header" style="display:flex;align-items:center;justify-content:space-between;padding:18px 22px 14px;border-bottom:1px solid #F1F5F9;">
+      <div>
+        <div class="qr-dialog-title" style="font-size:18px;font-weight:600;color:#1E293B;display:flex;align-items:center;gap:8px;">
+          <span class="material-icons">card_giftcard</span>Select Free Scarf Item
+        </div>
+      </div>
+      <button data-close style="background:none;border:none;cursor:pointer;color:#94A3B8;padding:4px;border-radius:6px;display:flex;">
+        <span class="material-icons" style="font-size:20px;">close</span>
+      </button>
+    </div>
+
+    <div style="padding:18px 22px;">
+      <div style="display:flex;gap:12px;margin-bottom:16px;">
+        <div style="flex:1;">
+          <label style="display:block;font-size:12px;color:#64748B;margin-bottom:6px;font-weight:500;">Item Code/Name</label>
+          <div style="display:flex;gap:8px;">
+            <input type="text" id="scarfCodeInp" class="qr-input" style="flex:1;" placeholder="Enter Scarf...">
+            <button type="button" id="scarfLookupBtn" class="btn-primary" style="padding:0 12px;display:flex;align-items:center;justify-content:center;">
+              <span class="material-icons" style="font-size:18px;">search</span>
+            </button>
+          </div>
+        </div>
+        <div style="flex:2;">
+          <label style="display:block;font-size:12px;color:#64748B;margin-bottom:6px;font-weight:500;">Description</label>
+          <input type="text" id="scarfDescInp" class="qr-input" style="width:100%;background:#F8FAFC;cursor:not-allowed;" readonly placeholder="Auto-filled desc...">
+        </div>
+        <div style="width:70px;">
+          <label style="display:block;font-size:12px;color:#64748B;margin-bottom:6px;font-weight:500;">Qty</label>
+          <input type="number" id="scarfQtyInp" class="qr-input" style="width:100%;text-align:center;" value="1" readonly>
+        </div>
+      </div>
+      
+      <div id="scarfErrorMsg" style="color:#DC2626;font-size:13px;margin-bottom:20px;display:none;background:#FEF2F2;padding:10px 12px;border-radius:6px;border:1px solid #FECACA;">Error message</div>
+      
+      <div class="qr-dialog-footer" style="padding:16px 0 0;margin-top:20px;border-top:1px solid #F1F5F9;justify-content:flex-end;gap:12px;">
+        <button type="button" class="btn-qr-cancel" data-close>Cancel</button>
+        <button type="button" class="btn-qr-save" id="scarfApplyBtn">Add Free Item</button>
+      </div>
+    </div>
+  </template>
+
+</body>
+</html>
+
+
+
+
