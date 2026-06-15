@@ -918,7 +918,6 @@
     </div>
     <nav class="pos-nav">
       <a href="index.html" class="active">Sales</a>
-      <a href="ReprintSales.html">Reprint</a>
       <div style="width:1px;height:20px;background:rgba(255,255,255,0.2);margin:0 8px;"></div>
       <a href="#" id="depositBtnTop" style="color:#FFFBEB;"><span class="material-icons" style="font-size:14px;vertical-align:middle;margin-right:4px;">account_balance_wallet</span>Deposit</a>
       <a href="#" id="returBtnTop" style="color:#FEF3C7;"><span class="material-icons" style="font-size:14px;vertical-align:middle;margin-right:4px;">assignment_return</span>Retur</a>
@@ -1383,7 +1382,7 @@
       </div>
       <div class="qr-field">
         <label>Diskon Nominal (Rp)</label>
-        <input class="qr-input" id="discAmount" type="number" placeholder="mis. 15000"/>
+        <input class="qr-input" id="discAmount" type="text" inputmode="numeric" placeholder="mis. 15.000"/>
       </div>
     </div>
     <div class="qr-field">
@@ -1431,7 +1430,7 @@
     <div class="qr-dialog-body">
       <div class="qr-field">
         <label>Nominal Deposit (Rp)</label>
-        <input class="qr-input" id="depAmount" type="number" placeholder="Rp"/>
+        <input class="qr-input" id="depAmount" type="text" inputmode="numeric" placeholder="Rp"/>
       </div>
       <div class="qr-field">
         <label>Catatan</label>
@@ -2038,9 +2037,12 @@
           amt.value = Math.round(a);
           update();
       });
-      amt.addEventListener('input', () => {
-          const val = parseFloat(amt.value) || 0;
-          const p = (val / unitPrice) * 100;
+      amt.addEventListener('input', function() {
+          let raw = this.value.replace(/[^\d]/g, '');
+          let val = parseInt(raw, 10) || 0;
+          if (unitPrice > 0 && val > unitPrice) val = unitPrice;
+          this.value = val ? val.toLocaleString('id-ID') : '';
+          const p = unitPrice > 0 ? (val / unitPrice) * 100 : 0;
           pct.value = parseFloat(p.toFixed(2));
           update();
       });
@@ -2506,8 +2508,14 @@
 
     document.getElementById('depositBtnTop')?.addEventListener('click', () => {
       openTemplateDialog('depositDialog','depositDialogContent','depositTpl', (host, dlg) => {
+        const depAmtInp = host.querySelector('#depAmount');
+        depAmtInp.addEventListener('input', function() {
+          let raw = this.value.replace(/[^\d]/g, '');
+          let val = parseInt(raw, 10) || 0;
+          this.value = val ? val.toLocaleString('id-ID') : '';
+        });
         host.querySelector('#btnProsesDeposit').addEventListener('click', () => {
-          const amt = parseFloat(host.querySelector('#depAmount').value) || 0;
+          const amt = parseRp(depAmtInp.value) || 0;
           const note = host.querySelector('#depNote').value || '';
           if (amt <= 0) {
             showToast('Nominal deposit harus lebih dari 0', 'error_outline');

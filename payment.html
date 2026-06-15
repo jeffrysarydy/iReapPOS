@@ -253,7 +253,6 @@ dialog[open] { animation: pop .16s ease-out; }
   </a>
   <nav class="pos-nav">
     <a href="index.html" class="active">Sales</a>
-    <a href="ReprintSales.html">Reprint Sales</a>
   </nav>
   <div class="pos-header-right">
     <div style="text-align:right;">
@@ -627,7 +626,7 @@ dialog[open] { animation: pop .16s ease-out; }
   inputRp.addEventListener('input', function(e) {
     let raw = this.value.replace(/[^\d]/g, '');
     let rp = parseInt(raw, 10) || 0;
-    if (rp > baseSubtotal) rp = baseSubtotal;
+    if (baseSubtotal > 0 && rp > baseSubtotal) rp = baseSubtotal;
     this.value = rp ? rp.toLocaleString('id-ID') : '';
     let pct = baseSubtotal > 0 ? (rp / baseSubtotal) * 100 : 0;
     inputPct.value = pct ? Number.isInteger(pct) ? pct : pct.toFixed(2) : '';
@@ -806,7 +805,7 @@ dialog[open] { animation: pop .16s ease-out; }
           <div style="font-size:12px; color:#64748B; font-weight:600;">Available Points</div>
           <div style="font-size:14px; font-weight:700; color:#0F172A;">${availPoints} pts</div>
         </div>
-        <input class="pay-input num" id="pointAmount" type="number" placeholder="0" min="0" max="${availPoints}"/>
+        <input class="pay-input num" id="pointAmount" type="text" inputmode="numeric" placeholder="0" />
         <div style="font-size:12.5px;color:#64748B;margin-top:6px;display:flex;justify-content:space-between;">
           <span>Value in IDR:</span>
           <span id="pointEqv" style="font-weight:700;color:#16A34A;">Rp 0</span>
@@ -826,18 +825,17 @@ dialog[open] { animation: pop .16s ease-out; }
     const hasMember = !!cartData.member_id;
     const availPoints = hasMember ? 1250 : 0;
 
-    inp.addEventListener('input', () => {
-      let pts = parseInt(inp.value) || 0;
-      if (pts > availPoints) {
-        pts = availPoints;
-        inp.value = pts;
-      }
+    inp.addEventListener('input', function() {
+      let raw = this.value.replace(/[^\d]/g, '');
+      let pts = parseInt(raw, 10) || 0;
+      if (pts > availPoints) pts = availPoints;
+      this.value = pts ? pts.toLocaleString('id-ID') : '';
       const rp = pts * 100;
       eqv.textContent = fmtRp(rp);
     });
 
     btn.addEventListener('click', () => {
-      let pts = parseInt(inp.value) || 0;
+      let pts = parseRp(inp.value) || 0;
       if (pts <= 0) return;
       const rp = pts * 100;
       
@@ -857,7 +855,7 @@ dialog[open] { animation: pop .16s ease-out; }
   /* CASH form (matching reference: Currency + Amount + Rate) */
   function cashForm() { return `
     <div class="pay-field"><label>Amount</label>
-      <input class="pay-input num" id="cashAmount" type="number" placeholder="0" min="0"/>
+      <input class="pay-input num" id="cashAmount" type="text" inputmode="numeric" placeholder="e.g. 50.000" />
       <div class="quick-cash-row">
         <button class="btn-quick-cash" id="qcExact">Exact Amount</button>
         <button class="btn-quick-cash" id="qc50">Rp 50.000</button>
@@ -870,14 +868,20 @@ dialog[open] { animation: pop .16s ease-out; }
 
   function bindCash() {
     const amt = document.getElementById('cashAmount');
-    if (CURRENT_REMAINING > 0) amt.value = CURRENT_REMAINING;
+    if (CURRENT_REMAINING > 0) amt.value = CURRENT_REMAINING.toLocaleString('id-ID');
     
-    document.getElementById('qcExact').addEventListener('click', () => { amt.value = CURRENT_REMAINING; });
-    document.getElementById('qc50').addEventListener('click', () => { amt.value = 50000; });
-    document.getElementById('qc100').addEventListener('click', () => { amt.value = 100000; });
+    document.getElementById('qcExact').addEventListener('click', () => { amt.value = CURRENT_REMAINING.toLocaleString('id-ID'); });
+    document.getElementById('qc50').addEventListener('click', () => { amt.value = (50000).toLocaleString('id-ID'); });
+    document.getElementById('qc100').addEventListener('click', () => { amt.value = (100000).toLocaleString('id-ID'); });
+
+    amt.addEventListener('input', function() {
+      let raw = this.value.replace(/[^\d]/g, '');
+      let val = parseInt(raw, 10) || 0;
+      this.value = val ? val.toLocaleString('id-ID') : '';
+    });
     
     document.getElementById('cashAddBtn').addEventListener('click', () => {
-      const a = parseFloat(amt.value)||0;
+      const a = parseRp(amt.value)||0;
       addPayment('cash', Math.round(a));
       amt.value = ''; amt.focus();
     });
@@ -889,7 +893,7 @@ dialog[open] { animation: pop .16s ease-out; }
       <input class="pay-input num" id="cardNo" type="text" placeholder="e.g. 4111 1111 1111 1111"/>
     </div>
     <div class="pay-field"><label>Amount</label>
-      <input class="pay-input num" id="cardAmount" type="number" placeholder="0" min="0"/>
+      <input class="pay-input num" id="cardAmount" type="text" inputmode="numeric" placeholder="e.g. 50.000" />
     </div>
     <div class="pay-field"><label>Approval Code</label>
       <input class="pay-input num" id="cardAppr" type="text" placeholder="e.g. 123456"/>
@@ -900,10 +904,16 @@ dialog[open] { animation: pop .16s ease-out; }
 
   function bindCard() {
     const amt = document.getElementById('cardAmount');
-    if (CURRENT_REMAINING > 0) amt.value = CURRENT_REMAINING;
+    if (CURRENT_REMAINING > 0) amt.value = CURRENT_REMAINING.toLocaleString('id-ID');
+
+    amt.addEventListener('input', function() {
+      let raw = this.value.replace(/[^\d]/g, '');
+      let val = parseInt(raw, 10) || 0;
+      this.value = val ? val.toLocaleString('id-ID') : '';
+    });
     
     document.getElementById('cardAddBtn').addEventListener('click', () => {
-      const a = parseFloat(amt.value)||0;
+      const a = parseRp(amt.value)||0;
       const no = document.getElementById('cardNo').value;
       const app = document.getElementById('cardAppr').value;
       let note = [];
