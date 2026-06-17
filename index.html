@@ -511,6 +511,8 @@
     cursor: pointer;
   }
   .txn-table tbody tr:hover { background: #F8FAFF; }
+  .txn-table tbody tr[data-is-retur="1"] { background-color: #FEF2F2; }
+  .txn-table tbody tr[data-is-retur="1"]:hover { background-color: #FEE2E2; }
   .txn-table tbody tr:last-child { border-bottom: none; }
   .txn-table td {
     padding: 9px 12px;
@@ -1638,6 +1640,10 @@
         showToast('Quantity barang bonus gratis tidak dapat diubah', 3000, 'error_outline');
         return;
       }
+      if ((minus || plus) && tr && tr.dataset.isRetur === '1') {
+        showToast('Quantity item retur tidak dapat diubah', 3000, 'error_outline');
+        return;
+      }
       if (minus && tr) {
         const span = tr.querySelector('.qty-value');
         let val = parseInt(span.textContent, 10);
@@ -1998,7 +2004,7 @@
         <td class="name-cell">${name}</td>
         <td>
           <div class="qty-stepper">
-            <button class="qty-btn qty-minus">Ã¢Ë†â€™</button>
+            <button class="qty-btn qty-minus">-</button>
             <span class="qty-val qty-value" data-initial="1">1</span>
             <button class="qty-btn qty-plus">+</button>
           </div>
@@ -2020,6 +2026,10 @@
     }
     if (selectedRow.dataset.isFreeScarf === 'true') {
       showToast('Barang bonus gratis tidak dapat diberikan diskon manual', 3000, 'error_outline');
+      return;
+    }
+    if (selectedRow.dataset.isRetur === '1') {
+      showToast('Item retur tidak dapat diberikan diskon manual', 3000, 'error_outline');
       return;
     }
     const priceText = selectedRow.querySelector('.price-cell').textContent;
@@ -2219,14 +2229,18 @@
   /* Ã¢â€â‚¬Ã¢â€â‚¬ MEMBER ZONE LOGIC Ã¢â€â‚¬Ã¢â€â‚¬ */
   let pendingMember = null; // holds newly registered member data before attach decision
 
+  let currentActiveMember = null;
+
   function attachMember(member) {
+    currentActiveMember = member;
     document.getElementById('memberZoneEmpty').style.display    = 'none';
     document.getElementById('memberZoneAttached').style.display = '';
     document.getElementById('attachedMemberName').textContent   = member.name;
-    document.getElementById('attachedMemberSub').textContent    = `${member.id} Ã‚Â· ${member.phone}`;
+    document.getElementById('attachedMemberSub').innerHTML    = `${member.id} &middot; ${member.phone}`;
   }
 
   function detachMember() {
+    currentActiveMember = null;
     document.getElementById('memberZoneEmpty').style.display    = '';
     document.getElementById('memberZoneAttached').style.display = 'none';
     document.getElementById('memberSearchInput').value = '';
@@ -2719,7 +2733,7 @@
       typeahead.innerHTML = results.map(m => `
         <div style="padding:8px 12px;font-size:12px;cursor:pointer;border-bottom:1px solid #F1F5F9;" onmouseover="this.style.background='#F8FAFF'" onmouseout="this.style.background='transparent'" onclick="attachMemberObj('${m.id}')">
           <div style="font-weight:600;color:#0F172A;">${m.name}</div>
-          <div style="color:#64748B;font-size:11px;margin-top:2px;">${m.id} &middot; ${m.phone} &middot; ${m.tier} (${m.points} pts)</div>
+          <div style="color:#64748B;font-size:11px;margin-top:2px;">${m.id} &middot; ${m.phone} &middot; ${m.tier || 'Member'} (${m.points || 0} pts)</div>
         </div>
       `).join('');
       typeahead.style.display = 'block';
@@ -2808,6 +2822,10 @@
 
   document.getElementById('btnRowQtyMinus')?.addEventListener('click', () => {
     if (!selectedRow) return;
+    if (selectedRow.dataset.isRetur === '1') {
+      showToast('Quantity item retur tidak dapat diubah', 3000, 'error_outline');
+      return;
+    }
     const span = selectedRow.querySelector('.qty-value');
     let v = parseInt(span.textContent);
     if (v > 1) {
@@ -2817,6 +2835,10 @@
   });
   document.getElementById('btnRowQtyPlus')?.addEventListener('click', () => {
     if (!selectedRow) return;
+    if (selectedRow.dataset.isRetur === '1') {
+      showToast('Quantity item retur tidak dapat diubah', 3000, 'error_outline');
+      return;
+    }
     const span = selectedRow.querySelector('.qty-value');
     let v = parseInt(span.textContent);
     span.textContent = v + 1;
@@ -2855,13 +2877,16 @@
       });
       
       const memberAttached = document.getElementById('memberZoneAttached').style.display !== 'none';
-      const memberId = memberAttached ? document.getElementById('attachedMemberName').textContent : null;
+      const memberId = memberAttached && currentActiveMember ? currentActiveMember.id : null;
+      const memberName = memberAttached && currentActiveMember ? currentActiveMember.name : null;
+      const memberPoints = memberAttached && currentActiveMember ? currentActiveMember.points : 0;
       const totalDiscount = parseRp(document.getElementById('sumDiscount').textContent);
       
       const cart = {
         items: items,
-        member_id: memberAttached ? 'M00123' : null,
-        member_name: memberAttached ? memberId : null,
+        member_id: memberId,
+        member_name: memberName,
+        member_points: memberPoints,
         discount: totalDiscount
       };
       
@@ -2906,7 +2931,7 @@
               <td class="name-cell">${it.name}</td>
               <td>
                 <div class="qty-stepper">
-                  <button class="qty-btn qty-minus">Ã¢Ë†â€™</button>
+                  <button class="qty-btn qty-minus">-</button>
                   <span class="qty-val qty-value" data-initial="${it.qty}">${it.qty}</span>
                   <button class="qty-btn qty-plus">+</button>
                 </div>

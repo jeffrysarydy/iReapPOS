@@ -537,7 +537,7 @@ dialog[open] { animation: pop .16s ease-out; }
       memAttached.style.display = 'flex';
       document.getElementById('payMemberId').textContent = cartData.member_id;
       document.getElementById('payMemberName').textContent = cartData.member_name || ('Member ' + cartData.member_id);
-      document.getElementById('payMemberPoints').textContent = '1250';
+      document.getElementById('payMemberPoints').textContent = cartData.member_points || '0';
     } else {
       memEmpty.style.display = 'flex';
       memAttached.style.display = 'none';
@@ -563,7 +563,7 @@ dialog[open] { animation: pop .16s ease-out; }
       typeahead.innerHTML = results.map(m => `
         <div style="padding:8px 12px;font-size:12px;cursor:pointer;border-bottom:1px solid #F1F5F9;" onmouseover="this.style.background='#F8FAFF'" onmouseout="this.style.background='transparent'" onclick="attachMemberObj('${m.id}')">
           <div style="font-weight:600;color:#0F172A;">${m.name}</div>
-          <div style="color:#64748B;font-size:11px;margin-top:2px;">${m.id} &middot; ${m.phone} &middot; ${m.tier} (${m.points} pts)</div>
+          <div style="color:#64748B;font-size:11px;margin-top:2px;">${m.id} &middot; ${m.phone} &middot; ${m.tier || 'Member'} (${m.points || 0} pts)</div>
         </div>
       `).join('');
       typeahead.style.display = 'block';
@@ -579,6 +579,7 @@ dialog[open] { animation: pop .16s ease-out; }
     if(m) {
       cartData.member_id = m.id;
       cartData.member_name = m.name;
+      cartData.member_points = m.points || 0;
       showToast('Member found: ' + m.name);
       searchInput.value = '';
       typeahead.style.display = 'none';
@@ -749,6 +750,16 @@ dialog[open] { animation: pop .16s ease-out; }
 
   function addPayment(method, amount, note='') {
     if (amount <= 0) { showToast('Enter a valid amount', 'error_outline'); return; }
+    
+    if (method !== 'cash' && amount > CURRENT_REMAINING) {
+      if (CURRENT_REMAINING <= 0) {
+        showToast('Tagihan sudah lunas. Tidak bisa menambah pembayaran non-tunai.', 'error_outline');
+        return;
+      }
+      amount = CURRENT_REMAINING;
+      showToast('Jumlah disesuaikan dengan sisa tagihan', 'info');
+    }
+
     const meta = METHOD_META[method];
     paymentList.push({ method, label: meta.label + (note ? ` (${note})` : ''), amount, icon: meta.icon, color: meta.color, bg: meta.bg });
     renderPaymentList();
@@ -838,7 +849,7 @@ dialog[open] { animation: pop .16s ease-out; }
   /* POINT form */
   function pointForm() {
     const hasMember = !!cartData.member_id;
-    const availPoints = hasMember ? 1250 : 0;
+    const availPoints = hasMember ? (cartData.member_points || 0) : 0;
     return `
       <div class="pay-field"><label>Points to Redeem (1 Pt = Rp 100)</label>
         <div style="background:#F8FAFC; border:1px solid #E2E8F0; padding:10px 12px; border-radius:8px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;">
@@ -863,7 +874,7 @@ dialog[open] { animation: pop .16s ease-out; }
     const btn = document.getElementById('btnAddPoint');
     
     const hasMember = !!cartData.member_id;
-    const availPoints = hasMember ? 1250 : 0;
+    const availPoints = hasMember ? (cartData.member_points || 0) : 0;
 
     inp.addEventListener('input', function() {
       let raw = this.value.replace(/[^\d]/g, '');
@@ -1147,6 +1158,8 @@ dialog[open] { animation: pop .16s ease-out; }
 
   /* ── ICON SYSTEM (same as SalesFrame5) ── */
   const ICONS = {
+    emoji_events:'<path d="M8 21h8"/><path d="M12 17v4"/><path d="M7 4h10"/><path d="M17 4v8a5 5 0 0 1-10 0V4"/><path d="M4 9h3v3a8 8 0 0 0 10 0v-3h3"/>',
+    add:'<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
     storefront:'<path d="M3 9.5 4.5 4h15L21 9.5"/><path d="M4 9.5V20h16V9.5"/><path d="M9 20v-6h6v6"/><path d="M4 9.5a2.5 2 0 0 0 5 0 2.5 2 0 0 0 5 0 2.5 2 0 0 0 5 0"/>',
     payments:'<rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/>',
     receipt_long:'<path d="M5 3v18l2-1 2 1 2-1 2 1 2-1 2 1V3l-2 1-2-1-2 1-2-1-2 1z"/><line x1="8" y1="8" x2="16" y2="8"/><line x1="8" y1="12" x2="16" y2="12"/>',
