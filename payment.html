@@ -354,7 +354,7 @@ dialog[open] { animation: pop .16s ease-out; }
     <div class="card">
       <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;">
           <div class="card-title"><span class="material-icons">receipt_long</span>Bill Summary</div>
-          <button class="btn-action-sm" onclick="document.getElementById('discountModal').showModal()" style="font-size:12px;display:flex;align-items:center;gap:4px;padding:6px 10px;border:1px solid #BFDBFE;border-radius:6px;background:#EFF6FF;color:#1D4ED8;font-weight:600;cursor:pointer;transition:all 0.2s;box-shadow:0 1px 2px rgba(29,78,216,0.05);" onmouseover="this.style.background='#DBEAFE';this.style.borderColor='#93C5FD'" onmouseout="this.style.background='#EFF6FF';this.style.borderColor='#BFDBFE'">
+          <button class="btn-action-sm" onclick="openDiscountModal()" style="font-size:12px;display:flex;align-items:center;gap:4px;padding:6px 10px;border:1px solid #BFDBFE;border-radius:6px;background:#EFF6FF;color:#1D4ED8;font-weight:600;cursor:pointer;transition:all 0.2s;box-shadow:0 1px 2px rgba(29,78,216,0.05);" onmouseover="this.style.background='#DBEAFE';this.style.borderColor='#93C5FD'" onmouseout="this.style.background='#EFF6FF';this.style.borderColor='#BFDBFE'">
             <span class="material-icons" style="font-size:14px;">percent</span> Add Discount
           </button>
         </div>
@@ -442,6 +442,11 @@ dialog[open] { animation: pop .16s ease-out; }
      </div>
   </div>
 
+  <div id="authStatusBadge" style="display:none; align-items:center; gap:6px; background:#F0FDF4; border:1px solid #BBF7D0; color:#16A34A; padding:10px 12px; border-radius:8px; margin-bottom:12px; font-size:12px; font-weight:600;">
+    <span class="material-icons" style="font-size:16px;">verified_user</span>
+    Authorized by SPV
+  </div>
+
   <button class="btn-add-action" id="btnApplyDisc" style="width: 100%; justify-content: center;">Apply Discount</button>
 </dialog>
 
@@ -470,7 +475,7 @@ dialog[open] { animation: pop .16s ease-out; }
 </dialog>
 
 <!-- ═══ TOAST ═══ -->
-<div id="toast"><span class="material-icons">check_circle</span><span id="toastMsg">—</span></div>
+<div id="toast" popover="manual"><span class="material-icons">check_circle</span><span id="toastMsg">—</span></div>
 
 <script>
     function goBackToSales() {
@@ -621,11 +626,24 @@ dialog[open] { animation: pop .16s ease-out; }
   
   let authorized = false;
 
+  function handleAuthReset() {
+    authorized = false;
+    if (authBadge) authBadge.style.display = 'none';
+  }
+
+  window.openDiscountModal = function() {
+    let pct = parseFloat(inputPct.value) || 0;
+    handleAuthReset();
+    checkAuth(pct);
+    document.getElementById('discountModal').showModal();
+  };
+
   inputPct.addEventListener('input', () => {
     let pct = parseFloat(inputPct.value) || 0;
     if (pct < 0) pct = 0; if (pct > 100) pct = 100;
     let rp = Math.round(baseSubtotal * (pct / 100));
     inputRp.value = rp ? rp.toLocaleString('id-ID') : '';
+    handleAuthReset();
     checkAuth(pct);
   });
 
@@ -636,6 +654,7 @@ dialog[open] { animation: pop .16s ease-out; }
     this.value = rp ? rp.toLocaleString('id-ID') : '';
     let pct = baseSubtotal > 0 ? (rp / baseSubtotal) * 100 : 0;
     inputPct.value = pct ? Number.isInteger(pct) ? pct : pct.toFixed(2) : '';
+    handleAuthReset();
     checkAuth(pct);
   });
 
@@ -643,11 +662,11 @@ dialog[open] { animation: pop .16s ease-out; }
     if (pct > 15) {
       if (!authorized) {
         authPrompt.style.display = 'flex';
-        authBadge.style.display = 'none';
+        if (authBadge) authBadge.style.display = 'none';
       }
     } else {
       authPrompt.style.display = 'none';
-      authBadge.style.display = 'none';
+      if (authBadge) authBadge.style.display = 'none';
       authorized = false; // reset
     }
   }
@@ -656,7 +675,7 @@ dialog[open] { animation: pop .16s ease-out; }
     if (document.getElementById('authPin').value) {
       authorized = true;
       authPrompt.style.display = 'none';
-      authBadge.style.display = 'block';
+      if (authBadge) authBadge.style.display = 'flex';
       document.getElementById('authPin').value = '';
       showToast('Otorisasi berhasil', 'verified_user');
     } else {
@@ -679,12 +698,17 @@ dialog[open] { animation: pop .16s ease-out; }
     document.querySelectorAll('.promo-item').forEach(el => {
         el.classList.remove('active');
         let btn = el.querySelector('.promo-apply-btn');
-        btn.innerHTML = 'Apply';
-        btn.style.color = '#4F46E5';
+        if (btn) {
+            btn.innerHTML = 'Apply';
+            btn.style.color = '#4F46E5';
+        }
     });
 
     recalcTotals();
     showToast(`Discount Applied: ${fmtRp(paymentDiscount)}`, 'percent');
+    
+    document.getElementById('discountModal').close();
+    handleAuthReset();
   });
 
   /* ── TOAST ── */
@@ -694,8 +718,18 @@ dialog[open] { animation: pop .16s ease-out; }
     t.querySelector('.material-icons').innerHTML = svgFor(icon);
     document.getElementById('toastMsg').textContent = msg;
     t.classList.add('show');
+    if (t.showPopover && !t.matches(':popover-open')) {
+        try { t.showPopover(); } catch(e) {}
+    }
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(()=>t.classList.remove('show'), 2800);
+    toastTimer = setTimeout(() => {
+        t.classList.remove('show');
+        setTimeout(() => { 
+            if(t.hidePopover && !t.classList.contains('show')) {
+                try { t.hidePopover(); } catch(e) {}
+            }
+        }, 250);
+    }, 2800);
   }
 
   /* ── VOUCHER / DEPOSIT LOOKUP DB ── */
