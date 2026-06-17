@@ -2074,7 +2074,18 @@
               </div>
             `).join('');
         }
-        
+        let maxHold = 0;
+        (holdsData || []).forEach(h => {
+           const m = h.id.match(/^H-(\d+)$/);
+           if (m) {
+              const num = parseInt(m[1], 10);
+              if (num > maxHold) maxHold = num;
+           }
+        });
+        const nextIdStr = 'H-' + String(maxHold > 0 ? maxHold + 1 : 1).padStart(5, '0');
+        const holdInp = host.querySelector('#holdNumber');
+        if (holdInp) holdInp.value = nextIdStr;
+
         host.querySelector('#btnHoldCurrent').addEventListener('click', () => {
             const rows = document.querySelectorAll('#txnBody tr');
             if (rows.length === 0) {
@@ -2093,7 +2104,8 @@
             });
             const memberAttached = document.getElementById('memberZoneAttached').style.display !== 'none';
             
-            const holdId = 'H-' + Math.floor(10000 + Math.random() * 90000);
+            const holdInpVal = host.querySelector('#holdNumber') ? host.querySelector('#holdNumber').value.trim() : '';
+            const holdId = holdInpVal || nextIdStr;
             let totalAmt = 0;
             items.forEach(i => totalAmt += ((i.price - i.discount) * i.qty));
             
@@ -2530,9 +2542,9 @@
           localStorage.setItem('deposit_amount', amt);
           localStorage.setItem('deposit_note', note);
           
-          document.getElementById('cartDataInput').value = JSON.stringify({ items: [] });
-          document.getElementById('totalAmountInput').value = amt;
-          document.getElementById('checkoutForm').submit();
+          localStorage.setItem('cartData', JSON.stringify({ items: [] }));
+          localStorage.setItem('totalAmount', amt);
+          window.location.href = 'payment.html';
         });
       });
     });
@@ -2824,23 +2836,23 @@
     if (initialCart && initialCart.items) {
         initialCart.items.forEach(it => {
             const tr = document.createElement('tr');
+            tr.dataset.sub = it.sub || '';
+            if (it.manualDiscPerUnit) tr.dataset.manualDiscPerUnit = it.manualDiscPerUnit;
             tr.innerHTML = `
-              <td style="color:#94A3B8;font-variant-numeric:tabular-nums;">--</td>
-              <td style="font-weight:600;color:#0F172A;" class="code-cell">${it.code}</td>
-              <td>--</td>
-              <td style="color:#0F172A;" class="name-cell">${it.name}</td>
+              <td class="code-cell">${it.code}</td>
+              <td class="name-cell">${it.name}</td>
               <td>
-                <div class="qty-ctrl">
-                  <button class="qty-btn" onclick="chgQty(this,-1)"><span class="material-icons">remove</span></button>
-                  <span class="qty-value">${it.qty}</span>
-                  <button class="qty-btn" onclick="chgQty(this,1)"><span class="material-icons">add</span></button>
+                <div class="qty-stepper">
+                  <button class="qty-btn qty-minus">−</button>
+                  <span class="qty-val qty-value" data-initial="${it.qty}">${it.qty}</span>
+                  <button class="qty-btn qty-plus">+</button>
                 </div>
               </td>
               <td><select class="spg-select"><option>Andi</option><option>Budi</option><option>Cici</option></select></td>
               <td class="right price-cell">${fmtRp(it.price)}</td>
-              <td class="right discount-cell">${fmtRp(it.discount)}</td>
+              <td class="right discount-cell">${it.discount > 0 ? ('- ' + fmtRp(it.discount)) : '- Rp 0'}</td>
               <td class="right total-cell">${fmtRp(it.price * it.qty - it.discount)}</td>
-              <td class="void-action" style="display:none;"><button class="void-btn" style="background:none;border:none;cursor:pointer;color:#DC2626;padding:4px;"><span class="material-icons" style="font-size:17px;">delete</span></button></td>`;
+              <td class="void-action" style="display:${typeof voidMode !== 'undefined' && voidMode ? '' : 'none'};"><button class="void-btn" style="background:none;border:none;cursor:pointer;color:#DC2626;padding:4px;"><span class="material-icons" style="font-size:17px;">delete</span></button></td>`;
             if (it.spg) {
                 const sel = tr.querySelector('.spg-select');
                 if(sel) sel.value = it.spg;

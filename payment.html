@@ -244,7 +244,7 @@ dialog[open] { animation: pop .16s ease-out; }
 
 <!-- ═══ HEADER ═══ -->
 <header class="pos-header">
-  <a href="index.html" class="pos-logo">
+  <a href="#" onclick="goBackToSales()" class="pos-logo">
     <div class="pos-logo-icon"><span class="material-icons">storefront</span></div>
     <div>
       <div class="pos-logo-name">iREAP POS</div>
@@ -252,7 +252,7 @@ dialog[open] { animation: pop .16s ease-out; }
     </div>
   </a>
   <nav class="pos-nav">
-    <a href="index.html" class="active">Sales</a>
+    <a href="#" onclick="goBackToSales()" class="active">Sales</a>
   </nav>
   <div class="pos-header-right">
     <div style="text-align:right;">
@@ -265,7 +265,7 @@ dialog[open] { animation: pop .16s ease-out; }
 
 <!-- ═══ BREADCRUMB ═══ -->
 <div style="padding: 14px 24px 0; display:flex; align-items:center; gap:8px;">
-  <a href="index.html" style="display:inline-flex;align-items:center;gap:4px;color:#64748B;font-size:12.5px;font-weight:500;text-decoration:none;">
+  <a href="#" onclick="goBackToSales()" style="display:inline-flex;align-items:center;gap:4px;color:#64748B;font-size:12.5px;font-weight:500;text-decoration:none;">
     <span class="material-icons" style="font-size:15px;">arrow_back</span>Back to Sales
   </a>
   <span style="color:#CBD5E1;font-size:12px;">·</span>
@@ -473,6 +473,12 @@ dialog[open] { animation: pop .16s ease-out; }
 <div id="toast"><span class="material-icons">check_circle</span><span id="toastMsg">—</span></div>
 
 <script>
+    function goBackToSales() {
+        const cData = localStorage.getItem('cartData');
+        if (cData) localStorage.setItem('initial_cart', cData);
+        window.location.href = 'index.html';
+    }
+
     // Load from localStorage
     const cartDataStr = localStorage.getItem('cartData');
     let cartData = { items: [] };
@@ -1053,6 +1059,8 @@ dialog[open] { animation: pop .16s ease-out; }
       localStorage.removeItem('deposit_id');
       localStorage.removeItem('deposit_amount');
       localStorage.removeItem('deposit_note');
+      localStorage.removeItem('cartData');
+      localStorage.removeItem('ireap_total');
       
       // Save to history_sales
       if (localStorage.getItem('trx_type') !== 'DEPOSIT') {
