@@ -1062,6 +1062,15 @@ dialog[open] { animation: pop .16s ease-out; }
       localStorage.removeItem('cartData');
       localStorage.removeItem('ireap_total');
       
+      const activeHold = localStorage.getItem('active_hold_id');
+      if (activeHold) {
+          let currentHolds = [];
+          try { currentHolds = JSON.parse(localStorage.getItem('saved_holds')) || []; } catch(e){}
+          const updatedHolds = currentHolds.filter(h => h.id !== activeHold);
+          localStorage.setItem('saved_holds', JSON.stringify(updatedHolds));
+          localStorage.removeItem('active_hold_id');
+      }
+      
       // Save to history_sales
       if (localStorage.getItem('trx_type') !== 'DEPOSIT') {
          let history = [];
